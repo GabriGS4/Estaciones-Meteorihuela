@@ -139,9 +139,7 @@ class FetchWeatherData extends Command
                 }
 
                 // 3️⃣ Histórico horario (últimas 24h)
-                $date = now()->format('Ymd'); // YYYYMMDD
-                $urlHourly = "https://api.weather.com/v2/pws/history/hourly?stationId={$station->station_id}&format=json&units=m&date={$date}&apiKey={$station->api_key}";
-                dd($urlHourly);
+                $urlHourly = "https://api.weather.com/v2/pws/observations/all/1day?stationId={$station->station_id}&format=json&units=m&apiKey={$station->api_key}";
                 $dataHourly = Http::timeout(10)->get($urlHourly)->json();
 
                 if (isset($dataHourly['observations'])) {
