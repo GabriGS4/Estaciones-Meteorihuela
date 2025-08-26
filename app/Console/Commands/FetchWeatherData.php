@@ -37,7 +37,7 @@ class FetchWeatherData extends Command
 
         $stations = Station::all();
 
-        Log::info("Iniciando fetch de datos para " . $stations->count() . " estaciones.");
+        Log::info("Iniciando fetch de datos para " . $stations->count() . " estaciones a fecha y hora " . now());
         foreach ($stations as $station) {
             if (empty($station->station_id) || empty($station->api_key)) {
                 $this->warn("⚠️ Estación {$station->id} no tiene station_id o api_key. Se omite.");
