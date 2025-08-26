@@ -86,45 +86,55 @@ class FetchWeatherData extends Command
 
                 if (isset($dataDaily['summaries'])) {
                     foreach ($dataDaily['summaries'] as $sum) {
-                        DailySummary::updateOrCreate(
-                            [
-                                'station_id'   => $station->id,
-                                'obs_time_utc' => Carbon::parse($sum['obsTimeUtc']),
-                            ],
-                            [
-                                'obs_time_local'      => Carbon::parse($sum['obsTimeLocal']),
-                                'solar_radiation_high'=> $sum['solarRadiationHigh'] ?? null,
-                                'uv_high'             => $sum['uvHigh'] ?? null,
-                                'winddir_avg'         => $sum['winddirAvg'] ?? null,
-                                'humidity_high'       => $sum['humidityHigh'] ?? null,
-                                'humidity_low'        => $sum['humidityLow'] ?? null,
-                                'humidity_avg'        => $sum['humidityAvg'] ?? null,
-                                'temp_high'           => $sum['metric']['tempHigh'] ?? null,
-                                'temp_low'            => $sum['metric']['tempLow'] ?? null,
-                                'temp_avg'            => $sum['metric']['tempAvg'] ?? null,
-                                'windspeed_high'      => $sum['metric']['windspeedHigh'] ?? null,
-                                'windspeed_low'       => $sum['metric']['windspeedLow'] ?? null,
-                                'windspeed_avg'       => $sum['metric']['windspeedAvg'] ?? null,
-                                'windgust_high'       => $sum['metric']['windgustHigh'] ?? null,
-                                'windgust_low'        => $sum['metric']['windgustLow'] ?? null,
-                                'windgust_avg'        => $sum['metric']['windgustAvg'] ?? null,
-                                'dewpt_high'          => $sum['metric']['dewptHigh'] ?? null,
-                                'dewpt_low'           => $sum['metric']['dewptLow'] ?? null,
-                                'dewpt_avg'           => $sum['metric']['dewptAvg'] ?? null,
-                                'windchill_high'      => $sum['metric']['windchillHigh'] ?? null,
-                                'windchill_low'       => $sum['metric']['windchillLow'] ?? null,
-                                'windchill_avg'       => $sum['metric']['windchillAvg'] ?? null,
-                                'heatindex_high'      => $sum['metric']['heatindexHigh'] ?? null,
-                                'heatindex_low'       => $sum['metric']['heatindexLow'] ?? null,
-                                'heatindex_avg'       => $sum['metric']['heatindexAvg'] ?? null,
-                                'pressure_max'        => $sum['metric']['pressureMax'] ?? null,
-                                'pressure_min'        => $sum['metric']['pressureMin'] ?? null,
-                                'pressure_trend'      => $sum['metric']['pressureTrend'] ?? null,
-                                'precip_rate'         => $sum['metric']['precipRate'] ?? null,
-                                'precip_total'        => $sum['metric']['precipTotal'] ?? null,
-                                'qc_status'           => $sum['qcStatus'] ?? null,
-                            ]
-                        );
+                        $obsTimeUtc = Carbon::parse($sum['obsTimeUtc']);
+                        
+                        // Buscar si ya existe un registro para esa estación en esa fecha
+                        $existingSummary = DailySummary::where('station_id', $station->id)
+                            ->whereDate('obs_time_utc', $obsTimeUtc->toDateString())
+                            ->first();
+                        
+                        $summaryData = [
+                            'obs_time_utc'        => $obsTimeUtc,
+                            'obs_time_local'      => Carbon::parse($sum['obsTimeLocal']),
+                            'solar_radiation_high'=> $sum['solarRadiationHigh'] ?? null,
+                            'uv_high'             => $sum['uvHigh'] ?? null,
+                            'winddir_avg'         => $sum['winddirAvg'] ?? null,
+                            'humidity_high'       => $sum['humidityHigh'] ?? null,
+                            'humidity_low'        => $sum['humidityLow'] ?? null,
+                            'humidity_avg'        => $sum['humidityAvg'] ?? null,
+                            'temp_high'           => $sum['metric']['tempHigh'] ?? null,
+                            'temp_low'            => $sum['metric']['tempLow'] ?? null,
+                            'temp_avg'            => $sum['metric']['tempAvg'] ?? null,
+                            'windspeed_high'      => $sum['metric']['windspeedHigh'] ?? null,
+                            'windspeed_low'       => $sum['metric']['windspeedLow'] ?? null,
+                            'windspeed_avg'       => $sum['metric']['windspeedAvg'] ?? null,
+                            'windgust_high'       => $sum['metric']['windgustHigh'] ?? null,
+                            'windgust_low'        => $sum['metric']['windgustLow'] ?? null,
+                            'windgust_avg'        => $sum['metric']['windgustAvg'] ?? null,
+                            'dewpt_high'          => $sum['metric']['dewptHigh'] ?? null,
+                            'dewpt_low'           => $sum['metric']['dewptLow'] ?? null,
+                            'dewpt_avg'           => $sum['metric']['dewptAvg'] ?? null,
+                            'windchill_high'      => $sum['metric']['windchillHigh'] ?? null,
+                            'windchill_low'       => $sum['metric']['windchillLow'] ?? null,
+                            'windchill_avg'       => $sum['metric']['windchillAvg'] ?? null,
+                            'heatindex_high'      => $sum['metric']['heatindexHigh'] ?? null,
+                            'heatindex_low'       => $sum['metric']['heatindexLow'] ?? null,
+                            'heatindex_avg'       => $sum['metric']['heatindexAvg'] ?? null,
+                            'pressure_max'        => $sum['metric']['pressureMax'] ?? null,
+                            'pressure_min'        => $sum['metric']['pressureMin'] ?? null,
+                            'pressure_trend'      => $sum['metric']['pressureTrend'] ?? null,
+                            'precip_rate'         => $sum['metric']['precipRate'] ?? null,
+                            'precip_total'        => $sum['metric']['precipTotal'] ?? null,
+                            'qc_status'           => $sum['qcStatus'] ?? null,
+                        ];
+                        
+                        if ($existingSummary) {
+                            // Actualizar el registro existente
+                            $existingSummary->update($summaryData);
+                        } else {
+                            // Crear nuevo registro
+                            DailySummary::create(array_merge(['station_id' => $station->id], $summaryData));
+                        }
                     }
                 }
 
