@@ -9,6 +9,7 @@ use App\Models\CurrentObservation;
 use App\Models\DailySummary;
 use App\Models\HourlyObservation;
 use Carbon\Carbon;
+use Log;
 
 class FetchWeatherData extends Command
 {
@@ -36,12 +37,14 @@ class FetchWeatherData extends Command
 
         $stations = Station::all();
 
+        Log::info("Iniciando fetch de datos para " . $stations->count() . " estaciones.");
         foreach ($stations as $station) {
             if (empty($station->station_id) || empty($station->api_key)) {
                 $this->warn("⚠️ Estación {$station->id} no tiene station_id o api_key. Se omite.");
                 continue;
             }
             $this->info("📡 Estación: {$station->station_id}");
+            Log::info("📡 Estación: {$station->station_id}");
 
             try {
                 // 1️⃣ Observación actual
@@ -175,13 +178,16 @@ class FetchWeatherData extends Command
                 }
 
                 $this->info("✅ Datos guardados para {$station->station_id}");
+                Log::info("Datos guardados para {$station->station_id}");
 
             } catch (\Exception $e) {
                 $this->error("❌ Error en {$station->station_id}: " . $e->getMessage());
+                Log::error("Error en {$station->station_id}: " . $e->getMessage());
             }
         }
 
         $this->info("🎉 Proceso completado.");
+        Log::info("Proceso completado a fecha y hora: " . now());
     }
 
 }
