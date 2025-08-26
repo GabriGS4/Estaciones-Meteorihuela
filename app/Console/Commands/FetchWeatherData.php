@@ -141,6 +141,7 @@ class FetchWeatherData extends Command
                 // 3️⃣ Histórico horario (últimas 24h)
                 $date = now()->format('Ymd'); // YYYYMMDD
                 $urlHourly = "https://api.weather.com/v2/pws/history/hourly?stationId={$station->station_id}&format=json&units=m&date={$date}&apiKey={$station->api_key}";
+                dd($urlHourly);
                 $dataHourly = Http::timeout(10)->get($urlHourly)->json();
 
                 if (isset($dataHourly['observations'])) {
@@ -148,10 +149,10 @@ class FetchWeatherData extends Command
                         HourlyObservation::updateOrCreate(
                             [
                                 'station_id'   => $station->id,
-                                'obs_time_utc' => Carbon::parse($h['obsTimeUtc']),
+                                'obs_time_local' => Carbon::parse($h['obsTimeLocal']),
                             ],
                             [
-                                'obs_time_local'      => Carbon::parse($h['obsTimeLocal']),
+                                'obs_time_utc'      => Carbon::parse($h['obsTimeUtc']),
                                 'solar_radiation_high'=> $h['solarRadiationHigh'] ?? null,
                                 'uv_high'             => $h['uvHigh'] ?? null,
                                 'winddir_avg'         => $h['winddirAvg'] ?? null,
