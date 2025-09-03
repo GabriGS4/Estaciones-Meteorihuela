@@ -8,6 +8,11 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::get('/test', function() {
+    return response()->json(['ok' => true]);
+});
+
+
 // Rutas API para datos meteorológicos
 Route::prefix('weather')->group(function () {
     // Listar estaciones disponibles
