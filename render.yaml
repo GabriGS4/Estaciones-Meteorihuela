@@ -1,9 +1,10 @@
 services:
   - type: web
     name: laravel-app
-    env: php
+    env: docker
     plan: free
-    region: frankfurt  # o la más cercana
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     buildCommand: |
       composer install --optimize-autoloader --no-dev
       php artisan key:generate
