@@ -21,6 +21,6 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withSchedule(function (Schedule $schedule) {
-        $schedule->command("app:fetch-weather-data")->everyTenMinutes();
+        $schedule->command("app:fetch-weather-data")->everyFifteenMinutes();
     })
     ->create();
