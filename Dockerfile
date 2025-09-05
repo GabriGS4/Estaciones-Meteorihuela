@@ -33,6 +33,8 @@ RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 
+RUN php artisan migrate --force \
+    && php artisan db:seed --force
 
 # Puerto expuesto por Laravel
 EXPOSE 8000
