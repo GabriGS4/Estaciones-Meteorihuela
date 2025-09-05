@@ -16,19 +16,23 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Establecer directorio de trabajo
 WORKDIR /var/www/html
 
-# Copiar archivos del proyecto
+# Copiar proyecto
 COPY . .
 
-# Instalar dependencias de Laravel
+# Copiar .env.example a .env
+RUN cp .env.example .env
+
+# Instalar dependencias PHP
 RUN composer install --no-dev --optimize-autoloader
 
-# Generar la APP_KEY automáticamente
+# Generar APP_KEY
 RUN php artisan key:generate
 
-# Optimizar la configuración
+# Optimizar caches
 RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
+
 
 # Puerto expuesto por Laravel
 EXPOSE 8000
