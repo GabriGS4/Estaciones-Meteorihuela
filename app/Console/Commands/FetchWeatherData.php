@@ -31,23 +31,26 @@ class FetchWeatherData extends Command
     /**
      * Execute the console command.
      */
-  public function handle()
+    public function handle()
     {
         $this->info("🚀 Iniciando actualización meteorológica...");
 
         $stations = Station::all();
-
         Log::info("Iniciando fetch de datos para " . $stations->count() . " estaciones a fecha y hora " . now());
+
         foreach ($stations as $station) {
             if (empty($station->station_id) || empty($station->api_key)) {
                 $this->warn("⚠️ Estación {$station->id} no tiene station_id o api_key. Se omite.");
                 continue;
             }
+
             $this->info("📡 Estación: {$station->station_id}");
             Log::info("📡 Estación: {$station->station_id}");
 
             try {
-                // 1️⃣ Observación actual
+                /**
+                 * 1️⃣ Observación actual
+                 */
                 $urlCurrent = "https://api.weather.com/v2/pws/observations/current?stationId={$station->station_id}&format=json&units=m&apiKey={$station->api_key}";
                 $dataCurrent = Http::timeout(10)->get($urlCurrent)->json();
 
@@ -55,9 +58,7 @@ class FetchWeatherData extends Command
                     $obs = $dataCurrent['observations'][0];
 
                     CurrentObservation::updateOrCreate(
-                        [
-                            'station_id' => $station->id,
-                        ],
+                        ['station_id' => $station->id],
                         [
                             'obs_time_utc'   => Carbon::parse($obs['obsTimeUtc']),
                             'obs_time_local' => Carbon::parse($obs['obsTimeLocal']),
@@ -80,21 +81,19 @@ class FetchWeatherData extends Command
                     );
                 }
 
-                // 2️⃣ Daily Summary (últimos 7 días)
+                /**
+                 * 2️⃣ Daily Summary (últimos 7 días) con UPSERT
+                 */
                 $urlDaily = "https://api.weather.com/v2/pws/dailysummary/7day?stationId={$station->station_id}&format=json&units=m&apiKey={$station->api_key}";
                 $dataDaily = Http::timeout(10)->get($urlDaily)->json();
 
                 if (isset($dataDaily['summaries'])) {
+                    $dailyData = [];
+
                     foreach ($dataDaily['summaries'] as $sum) {
-                        $obsTimeUtc = Carbon::parse($sum['obsTimeUtc']);
-                        
-                        // Buscar si ya existe un registro para esa estación en esa fecha
-                        $existingSummary = DailySummary::where('station_id', $station->id)
-                            ->whereDate('obs_time_utc', $obsTimeUtc->toDateString())
-                            ->first();
-                        
-                        $summaryData = [
-                            'obs_time_utc'        => $obsTimeUtc,
+                        $dailyData[] = [
+                            'station_id'          => $station->id,
+                            'obs_time_utc'        => Carbon::parse($sum['obsTimeUtc']),
                             'obs_time_local'      => Carbon::parse($sum['obsTimeLocal']),
                             'solar_radiation_high'=> $sum['solarRadiationHigh'] ?? null,
                             'uv_high'             => $sum['uvHigh'] ?? null,
@@ -126,64 +125,94 @@ class FetchWeatherData extends Command
                             'precip_rate'         => $sum['metric']['precipRate'] ?? null,
                             'precip_total'        => $sum['metric']['precipTotal'] ?? null,
                             'qc_status'           => $sum['qcStatus'] ?? null,
+                            'created_at'          => now(),
+                            'updated_at'          => now(),
                         ];
-                        
-                        if ($existingSummary) {
-                            // Actualizar el registro existente
-                            $existingSummary->update($summaryData);
-                        } else {
-                            // Crear nuevo registro
-                            DailySummary::create(array_merge(['station_id' => $station->id], $summaryData));
-                        }
                     }
+
+                    DailySummary::upsert(
+                        $dailyData,
+                        ['station_id', 'obs_time_utc'], // unique key
+                        [ // columnas a actualizar
+                            'obs_time_local','solar_radiation_high','uv_high','winddir_avg',
+                            'humidity_high','humidity_low','humidity_avg',
+                            'temp_high','temp_low','temp_avg',
+                            'windspeed_high','windspeed_low','windspeed_avg',
+                            'windgust_high','windgust_low','windgust_avg',
+                            'dewpt_high','dewpt_low','dewpt_avg',
+                            'windchill_high','windchill_low','windchill_avg',
+                            'heatindex_high','heatindex_low','heatindex_avg',
+                            'pressure_max','pressure_min','pressure_trend',
+                            'precip_rate','precip_total','qc_status','updated_at'
+                        ]
+                    );
                 }
 
-                // 3️⃣ Histórico horario (últimas 24h)
+                /**
+                 * 3️⃣ Histórico horario (últimas 24h) con UPSERT
+                 */
                 $urlHourly = "https://api.weather.com/v2/pws/observations/all/1day?stationId={$station->station_id}&format=json&units=m&apiKey={$station->api_key}";
                 $dataHourly = Http::timeout(10)->get($urlHourly)->json();
 
                 if (isset($dataHourly['observations'])) {
+                    $hourlyData = [];
+
                     foreach ($dataHourly['observations'] as $h) {
-                        HourlyObservation::updateOrCreate(
-                            [
-                                'station_id'   => $station->id,
-                                'obs_time_local' => Carbon::parse($h['obsTimeLocal']),
-                            ],
-                            [
-                                'obs_time_utc'      => Carbon::parse($h['obsTimeUtc']),
-                                'solar_radiation_high'=> $h['solarRadiationHigh'] ?? null,
-                                'uv_high'             => $h['uvHigh'] ?? null,
-                                'winddir_avg'         => $h['winddirAvg'] ?? null,
-                                'humidity_high'       => $h['humidityHigh'] ?? null,
-                                'humidity_low'        => $h['humidityLow'] ?? null,
-                                'humidity_avg'        => $h['humidityAvg'] ?? null,
-                                'temp_high'           => $h['metric']['tempHigh'] ?? null,
-                                'temp_low'            => $h['metric']['tempLow'] ?? null,
-                                'temp_avg'            => $h['metric']['tempAvg'] ?? null,
-                                'windspeed_high'      => $h['metric']['windspeedHigh'] ?? null,
-                                'windspeed_low'       => $h['metric']['windspeedLow'] ?? null,
-                                'windspeed_avg'       => $h['metric']['windspeedAvg'] ?? null,
-                                'windgust_high'       => $h['metric']['windgustHigh'] ?? null,
-                                'windgust_low'        => $h['metric']['windgustLow'] ?? null,
-                                'windgust_avg'        => $h['metric']['windgustAvg'] ?? null,
-                                'dewpt_high'          => $h['metric']['dewptHigh'] ?? null,
-                                'dewpt_low'           => $h['metric']['dewptLow'] ?? null,
-                                'dewpt_avg'           => $h['metric']['dewptAvg'] ?? null,
-                                'windchill_high'      => $h['metric']['windchillHigh'] ?? null,
-                                'windchill_low'       => $h['metric']['windchillLow'] ?? null,
-                                'windchill_avg'       => $h['metric']['windchillAvg'] ?? null,
-                                'heatindex_high'      => $h['metric']['heatindexHigh'] ?? null,
-                                'heatindex_low'       => $h['metric']['heatindexLow'] ?? null,
-                                'heatindex_avg'       => $h['metric']['heatindexAvg'] ?? null,
-                                'pressure_max'        => $h['metric']['pressureMax'] ?? null,
-                                'pressure_min'        => $h['metric']['pressureMin'] ?? null,
-                                'pressure_trend'      => $h['metric']['pressureTrend'] ?? null,
-                                'precip_rate'         => $h['metric']['precipRate'] ?? null,
-                                'precip_total'        => $h['metric']['precipTotal'] ?? null,
-                                'qc_status'           => $h['qcStatus'] ?? null,
-                            ]
-                        );
+                        $hourlyData[] = [
+                            'station_id'           => $station->id,
+                            'obs_time_local'       => Carbon::parse($h['obsTimeLocal']),
+                            'obs_time_utc'         => Carbon::parse($h['obsTimeUtc']),
+                            'solar_radiation_high' => $h['solarRadiationHigh'] ?? null,
+                            'uv_high'              => $h['uvHigh'] ?? null,
+                            'winddir_avg'          => $h['winddirAvg'] ?? null,
+                            'humidity_high'        => $h['humidityHigh'] ?? null,
+                            'humidity_low'         => $h['humidityLow'] ?? null,
+                            'humidity_avg'         => $h['humidityAvg'] ?? null,
+                            'temp_high'            => $h['metric']['tempHigh'] ?? null,
+                            'temp_low'             => $h['metric']['tempLow'] ?? null,
+                            'temp_avg'             => $h['metric']['tempAvg'] ?? null,
+                            'windspeed_high'       => $h['metric']['windspeedHigh'] ?? null,
+                            'windspeed_low'        => $h['metric']['windspeedLow'] ?? null,
+                            'windspeed_avg'        => $h['metric']['windspeedAvg'] ?? null,
+                            'windgust_high'        => $h['metric']['windgustHigh'] ?? null,
+                            'windgust_low'         => $h['metric']['windgustLow'] ?? null,
+                            'windgust_avg'         => $h['metric']['windgustAvg'] ?? null,
+                            'dewpt_high'           => $h['metric']['dewptHigh'] ?? null,
+                            'dewpt_low'            => $h['metric']['dewptLow'] ?? null,
+                            'dewpt_avg'            => $h['metric']['dewptAvg'] ?? null,
+                            'windchill_high'       => $h['metric']['windchillHigh'] ?? null,
+                            'windchill_low'        => $h['metric']['windchillLow'] ?? null,
+                            'windchill_avg'        => $h['metric']['windchillAvg'] ?? null,
+                            'heatindex_high'       => $h['metric']['heatindexHigh'] ?? null,
+                            'heatindex_low'        => $h['metric']['heatindexLow'] ?? null,
+                            'heatindex_avg'        => $h['metric']['heatindexAvg'] ?? null,
+                            'pressure_max'         => $h['metric']['pressureMax'] ?? null,
+                            'pressure_min'         => $h['metric']['pressureMin'] ?? null,
+                            'pressure_trend'       => $h['metric']['pressureTrend'] ?? null,
+                            'precip_rate'          => $h['metric']['precipRate'] ?? null,
+                            'precip_total'         => $h['metric']['precipTotal'] ?? null,
+                            'qc_status'            => $h['qcStatus'] ?? null,
+                            'created_at'           => now(),
+                            'updated_at'           => now(),
+                        ];
                     }
+
+                    HourlyObservation::upsert(
+                        $hourlyData,
+                        ['station_id', 'obs_time_local'], // unique key
+                        [ // columnas a actualizar
+                            'obs_time_utc','solar_radiation_high','uv_high','winddir_avg',
+                            'humidity_high','humidity_low','humidity_avg',
+                            'temp_high','temp_low','temp_avg',
+                            'windspeed_high','windspeed_low','windspeed_avg',
+                            'windgust_high','windgust_low','windgust_avg',
+                            'dewpt_high','dewpt_low','dewpt_avg',
+                            'windchill_high','windchill_low','windchill_avg',
+                            'heatindex_high','heatindex_low','heatindex_avg',
+                            'pressure_max','pressure_min','pressure_trend',
+                            'precip_rate','precip_total','qc_status','updated_at'
+                        ]
+                    );
                 }
 
                 $this->info("✅ Datos guardados para {$station->station_id}");
@@ -198,5 +227,6 @@ class FetchWeatherData extends Command
         $this->info("🎉 Proceso completado.");
         Log::info("Proceso completado a fecha y hora: " . now());
     }
+
 
 }
