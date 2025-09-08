@@ -33,7 +33,7 @@ class FetchWeatherData extends Command
      */
     public function handle()
     {
-        //$this->fetchWeatherDataAPI();
+        $this->fetchWeatherDataAPI();
         $this->fetchWeatherDataEcowitt();
     }
 
