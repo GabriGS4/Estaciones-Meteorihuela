@@ -14,6 +14,7 @@ class Station extends Model
         'lat',
         'lon',
         'elevation',
+        'use_ecowitt',
     ];
 
     protected $hidden = ['api_key'];
