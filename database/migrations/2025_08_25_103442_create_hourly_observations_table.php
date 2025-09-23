@@ -47,6 +47,9 @@ return new class extends Migration
             $table->decimal('precip_total', 6, 2)->nullable();
             $table->smallInteger('qc_status')->nullable();
             $table->timestamps();
+
+            // 🔑 Un registro por estación y hora
+            $table->unique(['station_id', 'obs_time_local'], 'hourly_station_time_unique');
         });
     }
 

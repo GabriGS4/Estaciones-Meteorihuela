@@ -32,6 +32,9 @@ return new class extends Migration
             $table->decimal('precip_total', 6, 2)->nullable();
             $table->smallInteger('qc_status')->nullable();
             $table->timestamps();
+
+            // 🔑 Un registro único por estación
+            $table->unique('station_id', 'current_station_unique');
         });
     }
 
