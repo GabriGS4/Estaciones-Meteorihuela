@@ -70,7 +70,7 @@ class WeatherApiController extends Controller
 
         // Filtro opcional por número de días
         if ($request->has('days')) {
-            $days = $request->get('days', 7);
+            $days = max(1, (int) $request->get('days')); // Mínimo 1 día
             $query->where('obs_time_utc', '>=', now()->subDays($days));
         }
 
@@ -94,7 +94,7 @@ class WeatherApiController extends Controller
 
         // Filtro opcional por número de días
         if ($request->has('days')) {
-            $days = $request->get('days', 7);
+            $days = max(1, (int) $request->get('days')); // Mínimo 1 día
             $query->where('obs_time_utc', '>=', now()->subDays($days));
         }
 
@@ -124,7 +124,7 @@ class WeatherApiController extends Controller
 
         // Filtro opcional por número de horas
         if ($request->has('hours')) {
-            $hours = $request->get('hours', 24);
+            $hours = max(1, (int) $request->get('hours')); // Mínimo 1 hora
             $query->where('obs_time_utc', '>=', now()->subHours($hours));
         }
 
@@ -148,7 +148,7 @@ class WeatherApiController extends Controller
 
         // Filtro opcional por número de horas
         if ($request->has('hours')) {
-            $hours = $request->get('hours', 24);
+            $hours = max(1, (int) $request->get('hours')); // Mínimo 1 hora
             $query->where('obs_time_utc', '>=', now()->subHours($hours));
         }
 
