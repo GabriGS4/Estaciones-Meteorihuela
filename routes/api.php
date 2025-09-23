@@ -27,4 +27,4 @@ Route::prefix('weather')->group(function () {
     Route::get('/current/{station}', [WeatherApiController::class, 'currentByStation']);
     Route::get('/daily/{station}', [WeatherApiController::class, 'dailyByStation']);
     Route::get('/hourly/{station}', [WeatherApiController::class, 'hourlyByStation']);
-});
+})->middleware(\App\Http\Middleware\ValidateApiPassword::class);
