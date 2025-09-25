@@ -42,15 +42,12 @@
       console.error('Leaflet no se ha cargado: L is undefined');
     } else {
 
-    // Inicializar mapa centrado en la media de posiciones o un valor por defecto
-    let center = [40.0, -3.7];
-    if (stations.length) {
-      const latAvg = stations.reduce((s, p) => s + p.lat, 0) / stations.length;
-      const lonAvg = stations.reduce((s, p) => s + p.lon, 0) / stations.length;
-      center = [latAvg, lonAvg];
-    }
+    // Centrar por defecto en Orihuela (Alicante) con zoom para ver la ciudad/entorno
+    const orihuelaCenter = [38.085, -0.945];
+    let center = orihuelaCenter;
+    const defaultZoom = 12; // nivel de zoom centrado en las latitudes de Orihuela
 
-    const map = L.map('map').setView(center, 6);
+    const map = L.map('map').setView(center, defaultZoom);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
