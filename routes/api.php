@@ -17,6 +17,7 @@ Route::get('/test', function() {
 Route::middleware(\App\Http\Middleware\ValidateApiPassword::class)->prefix('weather')->group(function () {
     // Listar estaciones disponibles
     Route::get('/stations', [WeatherApiController::class, 'stations']);
+    Route::get('/map', [WeatherApiController::class, 'map']);
     
     // Datos meteorológicos generales
     Route::get('/current', [WeatherApiController::class, 'current']);

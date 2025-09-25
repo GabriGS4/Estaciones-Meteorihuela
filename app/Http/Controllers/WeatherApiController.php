@@ -7,6 +7,7 @@ use App\Models\Station;
 use App\Models\CurrentObservation;
 use App\Models\DailySummary;
 use App\Models\HourlyObservation;
+use Illuminate\Support\Facades\URL;
 
 class WeatherApiController extends Controller
 {
@@ -165,6 +166,104 @@ class WeatherApiController extends Controller
             'success' => true,
             'data' => $observations,
             'count' => $observations->count()
+        ]);
+    }
+
+    /**
+     * Devuelve un iframe que carga la página embebible del mapa con todas las estaciones
+     */
+    public function map()
+    {
+        // URL pública que sirve el mapa embebible
+        $embedUrl = url('/map/embed');
+
+        $iframe = "<iframe src=\"{$embedUrl}\" style=\"width:100%;height:600px;border:0;\" title=\"Mapa de estaciones\"></iframe>";
+
+        return response($iframe, 200)
+            ->header('Content-Type', 'text/html');
+    }
+
+    /**
+     * Página embebible que muestra el mapa con Leaflet y todos los marcadores
+     */
+    public function mapEmbed()
+    {
+        // Cargar estaciones con su última observación actual y último resumen diario usando relaciones "latest"
+        $stations = Station::whereNotNull('lat')
+            ->whereNotNull('lon')
+            ->with(['latestCurrentObservation', 'latestDailySummary'])
+            ->get();
+
+        $data = $stations->map(function ($s) {
+            $current = $s->latestCurrentObservation;
+            $daily = $s->latestDailySummary;
+
+            // Fallback: si la relación no devuelve nada, hacer una consulta directa
+            if (!$current) {
+                $current = CurrentObservation::where('station_id', $s->id)
+                    ->orderBy('obs_time_utc', 'desc')
+                    ->first();
+            }
+            if (!$daily) {
+                $daily = DailySummary::where('station_id', $s->id)
+                    ->orderBy('obs_time_utc', 'desc')
+                    ->first();
+            }
+
+            return [
+                'id' => $s->id,
+                'name' => $s->name,
+                'lat' => (float) $s->lat,
+                'lon' => (float) $s->lon,
+                'temp' => $current ? $current->temp : null,
+                'temp_min' => $daily ? $daily->temp_low : null,
+                'temp_max' => $daily ? $daily->temp_high : null,
+            ];
+        });
+
+        return response()->view('map_embed', ['stations' => $data]);
+    }
+
+    /**
+     * Endpoint de depuración: devuelve los datos que se usan para el mapa en JSON
+     */
+    public function mapData()
+    {
+        $stations = Station::whereNotNull('lat')
+            ->whereNotNull('lon')
+            ->with(['latestCurrentObservation', 'latestDailySummary'])
+            ->get();
+
+        $data = $stations->map(function ($s) {
+            $current = $s->latestCurrentObservation;
+            $daily = $s->latestDailySummary;
+
+            if (!$current) {
+                $current = CurrentObservation::where('station_id', $s->id)
+                    ->orderBy('obs_time_utc', 'desc')
+                    ->first();
+            }
+            if (!$daily) {
+                $daily = DailySummary::where('station_id', $s->id)
+                    ->orderBy('obs_time_utc', 'desc')
+                    ->first();
+            }
+
+            return [
+                'id' => $s->id,
+                'name' => $s->name,
+                'lat' => (float) $s->lat,
+                'lon' => (float) $s->lon,
+                'temp' => $current ? $current->temp : null,
+                'temp_min' => $daily ? $daily->temp_low : null,
+                'temp_max' => $daily ? $daily->temp_high : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'count' => $data->count(),
+            'data' => $data,
         ]);
     }
 }
