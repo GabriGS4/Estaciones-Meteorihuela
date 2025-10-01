@@ -76,7 +76,7 @@
       if (s.lat == null || s.lon == null) return;
 
       // Crear un icono simple con la temperatura
-      const tempLabel = s.temp !== null ? `${s.temp}°C` : 'N/A';
+      const tempLabel = s.temp !== null ? `${s.temp}` : 'N/A';
       const circleColor = tempToColor(s.temp);
       const divIcon = L.divIcon({
         className: 'custom-marker',
