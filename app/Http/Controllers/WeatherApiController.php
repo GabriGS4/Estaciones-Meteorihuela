@@ -218,10 +218,16 @@ class WeatherApiController extends Controller
                 'temp' => $current ? $current->temp : null,
                 'temp_min' => $daily ? $daily->temp_low : null,
                 'temp_max' => $daily ? $daily->temp_high : null,
+                'humidity' => $current?->humidity,
+                'wind_gust' => $current?->wind_gust,
+                'precip_total' => $daily?->precip_total,
             ];
         });
 
-        return response()->view('map_embed', ['stations' => $data]);
+        return response()->view('map_embed', [
+            'stations' => $data,
+            'stationsJson' => $data->toJson(),
+        ]);
     }
 
     /**
@@ -257,6 +263,9 @@ class WeatherApiController extends Controller
                 'temp' => $current ? $current->temp : null,
                 'temp_min' => $daily ? $daily->temp_low : null,
                 'temp_max' => $daily ? $daily->temp_high : null,
+                'humidity' => $current?->humidity,
+                'wind_gust' => $current?->wind_gust,
+                'precip_total' => $daily?->precip_total,
             ];
         });
 

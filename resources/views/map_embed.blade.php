@@ -1,100 +1,234 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mapa de estaciones</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    html,body,#map { height: 100%; margin: 0; padding: 0; }
-    /* Info box */
-    .info-box { position: absolute; right: 10px; top: 10px; z-index: 1000; background: rgba(255,255,255,0.94); padding: 8px 12px; border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,0.12); font-family: system-ui, -apple-system, Roboto, "Helvetica Neue", Arial; }
-    .info-box b { display:block; font-size: 0.9rem; }
+    html,body { height: 100%; margin: 0; padding: 0; font-family: system-ui, -apple-system, Roboto, "Helvetica Neue", Arial; }
+    #map { width: 100%; height: 100vh; }
 
-    /* Marker styles */
-    .custom-marker { text-align: center; }
-    .marker-label { display:block; font-weight:700; color:#111; background: rgba(255,255,255,0.95); padding: 3px 8px; border-radius: 999px; box-shadow: 0 2px 6px rgba(0,0,0,0.12); font-size:0.85rem; }
-    .marker-circle { width:22px; height:22px; border-radius:50%; margin:6px auto 0; box-shadow: 0 2px 6px rgba(0,0,0,0.18); border: 2px solid rgba(255,255,255,0.9); }
+    /* Controles dentro del mapa */
+    .leaflet-bottom.leaflet-left .map-filters { margin: 0 0 14px 14px; }
+    .leaflet-top.leaflet-right .map-counter { margin: 14px 14px 0 0; }
 
-    /* Popup temperature highlights */
-    .temp-max { color: #c9302c; font-weight:700; }
-    .temp-min { color: #0b62d6; font-weight:700; }
-    .popup-title { font-size:1.02rem; margin-bottom:4px; display:block; }
+    .map-filters {
+      background: rgba(255,255,255,0.92);
+      padding: 8px 10px;
+      border-radius: 10px;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.15);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .map-counter {
+      background: rgba(255,255,255,0.92);
+      padding: 8px 12px;
+      border-radius: 10px;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.15);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .btn {
+      background:#fff;
+      border:1px solid #cbd5e1;
+      padding:0.35rem 0.55rem;
+      border-radius:6px;
+      font-size:0.85rem;
+      cursor:pointer;
+      transition: all 0.15s ease-in-out;
+    }
+    .btn:hover { background:#f1f5f9; }
+    .btn.active {
+      background:#2563eb;
+      border-color:#1e3a8a;
+      color:#fff;
+      font-weight:600;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+    }
+
+    /* Marcadores personalizados */
+    .custom-marker {
+      text-align: center;
+      transform: translate(-50%, -50%);
+    }
+
+    .marker-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .popup-title { font-size:1.02rem; margin-bottom:4px; display:block; font-weight:700; }
+    .muted { color:#6b7280; font-size:0.9rem; }
+
+    /* Colores de los datos */
+    .temp-actual { color: #16a34a; font-weight: 600; }   /* verde */
+    .temp-min { color: #2563eb; font-weight: 600; }      /* azul */
+    .temp-max { color: #dc2626; font-weight: 600; }      /* rojo */
+    .humidity { color: #0ea5e9; }                        /* azul claro */
+    .wind { color: #6b7280; }                            /* gris */
+    .rain { color: #7c3aed; }                            /* morado */
   </style>
 </head>
 <body>
+
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-  const stations = {!! json_encode($stations) !!};
-  console.log('Stations payload for map:', stations);
+    const stations = {!! json_encode($stations) !!} || [];
 
-  // Mostrar recuadro con total de estaciones en la esquina superior derecha
-  const infoBox = document.createElement('div');
-  infoBox.className = 'info-box';
-  infoBox.innerHTML = `<b>Estaciones totales</b><span>${stations.length}</span>`;
-  document.body.appendChild(infoBox);
-
-    // Comprobar que Leaflet se ha cargado
-    if (typeof L === 'undefined') {
-      document.getElementById('map').innerHTML = '<p style="padding:1rem;font-family:system-ui, -apple-system, Roboto, "Helvetica Neue", Arial;">Error cargando la librería de mapas (Leaflet). Comprueba la conexión a internet o prueba a remover atributos SRI si los hay.</p>';
-      console.error('Leaflet no se ha cargado: L is undefined');
-    } else {
-
-    // Centrar por defecto en Orihuela (Alicante) con zoom para ver la ciudad/entorno
-    const orihuelaCenter = [38.085, -0.945];
-    let center = orihuelaCenter;
-    const defaultZoom = 12; // nivel de zoom centrado en las latitudes de Orihuela
-
-    const map = L.map('map').setView(center, defaultZoom);
-
+    const map = L.map('map').setView([38.085, -0.945], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Preparar escala de color entre azul (frío) y rojo (calor)
-    const temps = stations.map(st => st.temp).filter(t => t !== null && !isNaN(t));
-    const scaleMin = temps.length ? Math.min(...temps) : 0;
-    const scaleMax = temps.length ? Math.max(...temps) : 30;
+    const markersLayer = L.layerGroup().addTo(map);
+    let displayMetric = 'temp';
 
-    function tempToColor(temp) {
-      if (temp === null || isNaN(temp)) return '#888';
-      // Normalizar según scaleMin/scaleMax
-      const t = Math.max(Math.min((temp - scaleMin) / (scaleMax - scaleMin || 1), 1), 0);
-      // Interpolar RGB entre azul (#1978c8) y rojo (#d9534f)
-      const r1 = 25, g1 = 120, b1 = 200; // azul
-      const r2 = 217, g2 = 83, b2 = 79;  // rojo
-      const r = Math.round(r1 + (r2 - r1) * t);
-      const g = Math.round(g1 + (g2 - g1) * t);
-      const b = Math.round(b1 + (b2 - b1) * t);
+    // Configuración de métricas y colores
+    const metricConfig = {
+      temp: { min: -10, max: 40, lowColor: [25,120,200], highColor: [217,83,79], unit: '°C' },
+      temp_max: { min: -5, max: 45, lowColor: [25,120,200], highColor: [217,83,79], unit: '°C' },
+      temp_min: { min: -20, max: 30, lowColor: [25,120,200], highColor: [217,83,79], unit: '°C' },
+      temp_amplitude: { min: 0, max: 25, lowColor: [200,200,200], highColor: [217,83,79], unit: '°C' },
+      humidity: { min: 0, max: 100, lowColor: [230,245,255], highColor: [10,80,20], unit: '%' },
+      wind_gust: { min: 0, max: 120, lowColor: [240,240,240], highColor: [120,20,10], unit: 'km/h' },
+      precip_total: { min: 0, max: 50, lowColor: [255,255,255], highColor: [0,80,200], unit: 'mm' },
+    };
+
+    function metricValue(s, metric) {
+      switch (metric) {
+        case 'temp': return s.temp;
+        case 'temp_max': return s.temp_max;
+        case 'temp_min': return s.temp_min;
+        case 'temp_amplitude': return s.temp_max - s.temp_min;
+        case 'humidity': return s.humidity;
+        case 'wind_gust': return s.wind_gust;
+        case 'precip_total': return s.precip_total;
+        default: return null;
+      }
+    }
+
+    function interpolateColor(rgb1, rgb2, t) {
+      const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * t);
+      const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * t);
+      const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * t);
       return `rgb(${r},${g},${b})`;
     }
 
-  stations.forEach(s => {
-      if (s.lat == null || s.lon == null) return;
-
-      // Crear un icono simple con la temperatura
-      const tempLabel = s.temp !== null ? `${s.temp}` : 'N/A';
-      const circleColor = tempToColor(s.temp);
-      const divIcon = L.divIcon({
-        className: 'custom-marker',
-        html: `<div style="text-align:center"><div class='marker-label'>${tempLabel}</div><div class='marker-circle' style='background:${circleColor}'></div></div>`,
-        iconSize: [48, 48],
-        iconAnchor: [24, 24]
-      });
-
-      const marker = L.marker([s.lat, s.lon], { icon: divIcon }).addTo(map);
-
-      const popupHtml = `<span class='popup-title'>${s.name}</span>
-        Temperatura actual: ${s.temp !== null ? s.temp + ' °C' : 'N/D'}<br/>
-        Mínima diaria: <span class='temp-min'>${s.temp_min !== null ? s.temp_min + ' °C' : 'N/D'}</span><br/>
-        Máxima diaria: <span class='temp-max'>${s.temp_max !== null ? s.temp_max + ' °C' : 'N/D'}</span>`;
-
-      marker.bindPopup(popupHtml);
-    });
+    function computeDynamicRange(metric) {
+      const vals = stations.map(s => metricValue(s, metric)).filter(v => v != null);
+      if (!vals.length) return null;
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const pad = (max - min) * 0.08 || 1;
+      return { min: min - pad, max: max + pad };
     }
+
+    function colorFor(s, metric) {
+      const cfg = metricConfig[metric] || metricConfig.temp;
+      const dyn = computeDynamicRange(metric);
+      const min = dyn ? dyn.min : cfg.min;
+      const max = dyn ? dyn.max : cfg.max;
+      const val = metricValue(s, metric);
+      if (val == null) return '#888';
+      const t = Math.max(0, Math.min(1, (val - min) / (max - min || 1)));
+      return interpolateColor(cfg.lowColor, cfg.highColor, t);
+    }
+
+    function getTextColor(bgColor) {
+      const rgb = bgColor.match(/\d+/g).map(Number);
+      const brightness = (rgb[0]*299 + rgb[1]*587 + rgb[2]*114) / 1000;
+      return brightness > 150 ? '#111' : '#fff';
+    }
+
+    function renderMarkers() {
+      markersLayer.clearLayers();
+
+      stations.forEach(s => {
+        if (!s.lat || !s.lon) return;
+
+        const val = metricValue(s, displayMetric);
+        const txt = (val == null || isNaN(val)) ? '—' : Math.round(val);
+        const color = colorFor(s, displayMetric);
+        const textColor = getTextColor(color);
+
+        const icon = L.divIcon({
+          className: 'custom-marker',
+          html: `<div class="marker-circle" style="background:${color};color:${textColor};">${txt}</div>`,
+          iconSize: [36,36],
+          iconAnchor: [18,18],
+        });
+
+        const popup = `
+          <span class="popup-title">${s.name}</span>
+          <div>
+            <span class="temp-actual">🌡️ Actual: ${s.temp ?? 'N/D'} °C</span><br>
+            <span class="temp-max">🔺 Máx: ${s.temp_max ?? 'N/D'} °C</span><br>
+            <span class="temp-min">🔻 Mín: ${s.temp_min ?? 'N/D'} °C</span><br>
+            <span class="humidity">💧 Humedad: ${s.humidity ?? 'N/D'} %</span><br>
+            <span class="wind">🌬️ Viento: ${s.wind_speed ?? 'N/D'} km/h</span><br>
+            <span class="rain">🌧️ Lluvia: ${s.precip_total ?? 'N/D'} mm</span>
+          </div>
+        `;
+
+        L.marker([s.lat, s.lon], { icon }).bindPopup(popup).addTo(markersLayer);
+      });
+    }
+
+    renderMarkers();
+
+    // Control: contador arriba derecha
+    const counter = L.control({ position: 'topright' });
+    counter.onAdd = function() {
+      const div = L.DomUtil.create('div', 'map-counter');
+      div.innerHTML = `Estaciones: <strong>${stations.length}</strong>`;
+      return div;
+    };
+    counter.addTo(map);
+
+    // Control: filtros abajo izquierda
+    const filters = L.control({ position: 'bottomleft' });
+    filters.onAdd = function() {
+      const div = L.DomUtil.create('div', 'map-filters');
+      div.innerHTML = `
+        <button class="btn active" data-metric="temp">Temp actual</button>
+        <button class="btn" data-metric="temp_max">Temp máx</button>
+        <button class="btn" data-metric="temp_min">Temp mín</button>
+        <button class="btn" data-metric="temp_amplitude">Amplitud</button>
+        <button class="btn" data-metric="humidity">Humedad</button>
+        <button class="btn" data-metric="wind_gust">Racha</button>
+        <button class="btn" data-metric="precip_total">Precip</button>
+      `;
+      return div;
+    };
+    filters.addTo(map);
+
+    // Activar botones dentro del mapa
+    const mapContainer = map.getContainer();
+    mapContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.map-filters .btn');
+      if (!btn) return;
+      mapContainer.querySelectorAll('.map-filters .btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      displayMetric = btn.getAttribute('data-metric');
+      renderMarkers();
+    });
   </script>
 </body>
 </html>
