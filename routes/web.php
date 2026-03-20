@@ -15,4 +15,3 @@ Route::get('/test', function() {
 
 
 // Página embebible del mapa
-Route::get('/map/embed', [WeatherApiController::class, 'mapEmbed']);

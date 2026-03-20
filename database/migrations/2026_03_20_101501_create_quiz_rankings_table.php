@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Station;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('stations', function (Blueprint $table) {
-            $table->boolean('use_ecowitt')->default(false)->after('elevation');
+        Schema::create('quiz_rankings', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre_jugador');
+            $table->integer('puntos');
+            $table->integer('total_preguntas');
+            $table->decimal('porcentaje', 5, 2);
+            $table->timestamps();
         });
     }
 
@@ -22,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('stations', function (Blueprint $table) {
-            $table->dropColumn('use_ecowitt');
-        });
+        Schema::dropIfExists('quiz_rankings');
     }
 };

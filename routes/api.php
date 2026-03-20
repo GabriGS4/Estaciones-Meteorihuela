@@ -2,30 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WeatherApiController;
+use App\Http\Controllers\Api\QuizController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
-Route::get('/test', function() {
-    return response()->json(['ok' => true]);
-});
-
-
-// Rutas API para datos meteorológicos
-Route::middleware(\App\Http\Middleware\ValidateApiPassword::class)->prefix('weather')->group(function () {
-    // Listar estaciones disponibles
-    Route::get('/stations', [WeatherApiController::class, 'stations']);
-    Route::get('/map', [WeatherApiController::class, 'map']);
-    
-    // Datos meteorológicos generales
-    Route::get('/current', [WeatherApiController::class, 'current']);
-    Route::get('/daily', [WeatherApiController::class, 'daily']);
-    Route::get('/hourly', [WeatherApiController::class, 'hourly']);
-    
-    // Rutas específicas por estación
-    Route::get('/current/{station}', [WeatherApiController::class, 'currentByStation']);
-    Route::get('/daily/{station}', [WeatherApiController::class, 'dailyByStation']);
-    Route::get('/hourly/{station}', [WeatherApiController::class, 'hourlyByStation']);
-});
+Route::get('/quiz/questions', [QuizController::class, 'getQuestions']);
+Route::post('/quiz/ranking', [QuizController::class, 'saveRanking']);
+Route::get('/quiz/ranking', [QuizController::class, 'getRanking']);
