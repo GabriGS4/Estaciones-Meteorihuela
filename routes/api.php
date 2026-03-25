@@ -7,3 +7,7 @@ use App\Http\Controllers\Api\QuizController;
 Route::get('/quiz/questions', [QuizController::class, 'getQuestions']);
 Route::post('/quiz/ranking', [QuizController::class, 'saveRanking']);
 Route::get('/quiz/ranking', [QuizController::class, 'getRanking']);
+
+Route::get('/app/version', function () {
+    return response()->json(['version' => config('app.version')]);
+});
