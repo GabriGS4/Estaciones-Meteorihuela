@@ -11,5 +11,6 @@ class QuizRanking extends Model
         'puntos',
         'total_preguntas',
         'porcentaje',
+        'tiempo',
     ];
 }

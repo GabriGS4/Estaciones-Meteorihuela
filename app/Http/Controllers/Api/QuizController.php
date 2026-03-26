@@ -14,7 +14,7 @@ class QuizController extends Controller
      */
     public function getQuestions()
     {
-        $questions = QuizQuestion::inRandomOrder()->get();
+        $questions = QuizQuestion::inRandomOrder()->take(20)->get();
         return response()->json($questions);
     }
 
@@ -28,6 +28,7 @@ class QuizController extends Controller
             'puntos' => 'required|integer|min:0',
             'total_preguntas' => 'required|integer|min:1',
             'porcentaje' => 'required|numeric|min:0|max:100',
+            'tiempo' => 'required|integer|min:0',
         ]);
 
         $ranking = QuizRanking::create($validated);
@@ -43,10 +44,9 @@ class QuizController extends Controller
      */
     public function getRanking()
     {
-        $rankings = QuizRanking::orderByDesc('porcentaje')
-            ->orderByDesc('puntos')
-            ->orderBy('created_at')
-            ->take(50)
+        $rankings = QuizRanking::orderByDesc('puntos')
+            ->orderBy('tiempo')
+            ->take(10)
             ->get();
 
         return response()->json($rankings);
