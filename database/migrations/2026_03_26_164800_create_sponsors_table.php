@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('quiz_rankings', function (Blueprint $table) {
-            $table->integer('tiempo')->after('porcentaje')->nullable()->comment('Tiempo en segundos');
+        Schema::create('sponsors', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('logo_url')->nullable();
+            $table->string('link_url')->nullable();
+            $table->boolean('active')->default(true);
+            $table->timestamps();
         });
     }
 
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('quiz_rankings', function (Blueprint $table) {
-            $table->dropColumn('tiempo');
-        });
+        Schema::dropIfExists('sponsors');
     }
 };
