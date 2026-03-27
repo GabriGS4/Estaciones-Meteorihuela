@@ -28,7 +28,7 @@
         .container { max-width: 1100px; margin: 2.5rem auto; padding: 0 1.5rem; }
 
         /* Summary totals */
-        .totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 2.5rem; }
+        .totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2.5rem; }
         .total-card {
             background: #1e293b; border: 1px solid #334155; border-radius: 12px;
             padding: 1.4rem 1.6rem;
@@ -73,6 +73,17 @@
         .stat-box .value { font-size: 1.8rem; font-weight: 700; margin-top: 0.2rem; }
         .stat-box.views .value { color: #a78bfa; }
         .stat-box.clicks .value { color: #34d399; }
+        .stat-box.devices .value { color: #fb923c; }
+
+        .card-actions { display: flex; justify-content: flex-end; padding: 0.75rem 1.5rem; border-top: 1px solid #334155; }
+        .btn-pdf-sm {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.4rem 1rem; border-radius: 6px;
+            background: #1d4ed8; color: #fff; text-decoration: none;
+            font-size: 0.78rem; font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-pdf-sm:hover { background: #1e40af; }
 
         .stories-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
         .stories-table th {
@@ -97,8 +108,9 @@
 
     <div class="container">
         @php
-            $totalViews  = $sponsors->sum('story_views');
-            $totalClicks = $sponsors->sum('link_clicks');
+            $totalViews   = $sponsors->sum('story_views');
+            $totalClicks  = $sponsors->sum('link_clicks');
+            $totalDevices = $sponsors->sum('unique_devices');
             $totalSponsors = $sponsors->count();
         @endphp
 
@@ -114,6 +126,10 @@
             <div class="total-card">
                 <span>Clicks en enlaces</span>
                 <strong>{{ number_format($totalClicks) }}</strong>
+            </div>
+            <div class="total-card">
+                <span>Dispositivos únicos</span>
+                <strong>{{ number_format($totalDevices) }}</strong>
             </div>
         </div>
 
@@ -146,6 +162,10 @@
                             <div class="label">🔗 Clicks enlace</div>
                             <div class="value">{{ number_format($sponsor['link_clicks']) }}</div>
                         </div>
+                        <div class="stat-box devices">
+                            <div class="label">📱 Dispositivos únicos</div>
+                            <div class="value">{{ number_format($sponsor['unique_devices']) }}</div>
+                        </div>
                     </div>
 
                     @if ($sponsor['stories']->count())
@@ -172,6 +192,9 @@
                     @else
                         <p style="font-size:0.82rem; color:#64748b; margin-top:0.5rem;">Sin stories registradas.</p>
                     @endif
+                </div>
+                <div class="card-actions">
+                    <a class="btn-pdf-sm" href="{{ route('sponsors.pdf.single', $sponsor['id']) }}">⬇ PDF este sponsor</a>
                 </div>
             </div>
             @empty

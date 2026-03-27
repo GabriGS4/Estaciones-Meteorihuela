@@ -116,6 +116,7 @@ class SponsorController extends Controller
         $request->validate([
             'sponsor_id'       => 'required|exists:sponsors,id',
             'sponsor_story_id' => 'required|exists:sponsor_stories,id',
+            'dispositivo_id'   => 'nullable|string|max:255',
         ]);
 
         SponsorInteraction::create([
@@ -124,6 +125,7 @@ class SponsorController extends Controller
             'interaction_type' => 'story_view',
             'ip_address'       => $request->ip(),
             'user_agent'       => $request->userAgent(),
+            'dispositivo_id'   => $request->dispositivo_id,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Story view recorded.']);
@@ -132,12 +134,13 @@ class SponsorController extends Controller
     /**
      * POST /api/sponsors/track-link-click
      * Records that a user clicked a sponsor's external link.
-     * Body: sponsor_id
+     * Body: sponsor_id, dispositivo_id (optional)
      */
     public function trackLinkClick(Request $request)
     {
         $request->validate([
-            'sponsor_id' => 'required|exists:sponsors,id',
+            'sponsor_id'     => 'required|exists:sponsors,id',
+            'dispositivo_id' => 'nullable|string|max:255',
         ]);
 
         SponsorInteraction::create([
@@ -146,6 +149,7 @@ class SponsorController extends Controller
             'interaction_type' => 'link_click',
             'ip_address'       => $request->ip(),
             'user_agent'       => $request->userAgent(),
+            'dispositivo_id'   => $request->dispositivo_id,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Link click recorded.']);

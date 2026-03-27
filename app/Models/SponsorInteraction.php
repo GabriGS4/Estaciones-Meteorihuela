@@ -9,7 +9,7 @@ class SponsorInteraction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['sponsor_id', 'sponsor_story_id', 'interaction_type', 'ip_address', 'user_agent'];
+    protected $fillable = ['sponsor_id', 'sponsor_story_id', 'interaction_type', 'ip_address', 'user_agent', 'dispositivo_id'];
 
     public function sponsor()
     {

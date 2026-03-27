@@ -22,7 +22,7 @@ class SponsorReportController extends Controller
 
     /**
      * GET /patrocinadores/pdf
-     * Download analytics as PDF.
+     * Download analytics PDF with all sponsors.
      */
     public function pdf()
     {
@@ -32,42 +32,69 @@ class SponsorReportController extends Controller
         return $pdf->download('patrocinadores-informe-' . now()->format('Y-m-d') . '.pdf');
     }
 
+    /**
+     * GET /patrocinadores/{id}/pdf
+     * Download analytics PDF for a single sponsor.
+     */
+    public function pdfSponsor(int $id)
+    {
+        $sponsor = Sponsor::with(['stories', 'interactions'])->findOrFail($id);
+        $sponsorData = $this->mapSponsorStats($sponsor);
+
+        $pdf = Pdf::loadView('sponsors.report_pdf_single', ['sponsor' => $sponsorData])
+            ->setPaper('a4', 'portrait');
+
+        $filename = 'patrocinador-' . str($sponsor->name)->slug() . '-' . now()->format('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private function getSponsorStats(): \Illuminate\Support\Collection
     {
-        return Sponsor::with(['stories', 'interactions'])->get()->map(function ($sponsor) {
-            $storyViews = $sponsor->interactions
-                ->where('interaction_type', 'story_view')
-                ->count();
+        return Sponsor::with(['stories', 'interactions'])->get()->map(
+            fn ($sponsor) => $this->mapSponsorStats($sponsor)
+        );
+    }
 
-            $linkClicks = $sponsor->interactions
-                ->where('interaction_type', 'link_click')
-                ->count();
+    private function mapSponsorStats(Sponsor $sponsor): array
+    {
+        $storyViews = $sponsor->interactions
+            ->where('interaction_type', 'story_view')
+            ->count();
 
-            // Views per story
-            $storiesWithViews = $sponsor->stories->map(function ($story) use ($sponsor) {
-                return [
-                    'id'     => $story->id,
-                    'type'   => $story->media_type,
-                    'active' => $story->active,
-                    'views'  => $sponsor->interactions
-                        ->where('interaction_type', 'story_view')
-                        ->where('sponsor_story_id', $story->id)
-                        ->count(),
-                ];
-            });
+        $linkClicks = $sponsor->interactions
+            ->where('interaction_type', 'link_click')
+            ->count();
 
+        $uniqueDevices = $sponsor->interactions
+            ->whereNotNull('dispositivo_id')
+            ->pluck('dispositivo_id')
+            ->unique()
+            ->count();
+
+        $storiesWithViews = $sponsor->stories->map(function ($story) use ($sponsor) {
             return [
-                'id'             => $sponsor->id,
-                'name'           => $sponsor->name,
-                'logo_url'       => $sponsor->logo_url,
-                'link_url'       => $sponsor->link_url,
-                'active'         => $sponsor->active,
-                'story_views'    => $storyViews,
-                'link_clicks'    => $linkClicks,
-                'stories'        => $storiesWithViews,
+                'id'     => $story->id,
+                'type'   => $story->media_type,
+                'active' => $story->active,
+                'views'  => $sponsor->interactions
+                    ->where('interaction_type', 'story_view')
+                    ->where('sponsor_story_id', $story->id)
+                    ->count(),
             ];
         });
+
+        return [
+            'id'             => $sponsor->id,
+            'name'           => $sponsor->name,
+            'logo_url'       => $sponsor->logo_url,
+            'link_url'       => $sponsor->link_url,
+            'active'         => $sponsor->active,
+            'story_views'    => $storyViews,
+            'link_clicks'    => $linkClicks,
+            'unique_devices' => $uniqueDevices,
+            'stories'        => $storiesWithViews,
+        ];
     }
 }

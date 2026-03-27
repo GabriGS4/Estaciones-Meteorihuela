@@ -19,6 +19,8 @@ Route::get('/test', function() {
 
 // Patrocinadores - Rutas de análisis públicas
 Route::prefix('patrocinadores')->group(function () {
-    Route::get('/',    [SponsorReportController::class, 'index'])->name('sponsors.report');
-    Route::get('/pdf', [SponsorReportController::class, 'pdf'])->name('sponsors.pdf');
+    Route::get('/',        [SponsorReportController::class, 'index'])->name('sponsors.report');
+    Route::get('/pdf',     [SponsorReportController::class, 'pdf'])->name('sponsors.pdf');
+    Route::get('/{id}/pdf', [SponsorReportController::class, 'pdfSponsor'])->name('sponsors.pdf.single')
+        ->where('id', '[0-9]+');
 });

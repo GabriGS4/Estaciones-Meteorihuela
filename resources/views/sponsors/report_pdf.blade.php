@@ -14,7 +14,7 @@
         .header h1 { font-size: 18px; font-weight: 700; }
         .header p { font-size: 10px; color: #94a3b8; margin-top: 4px; }
 
-        .totals { display: flex; gap: 10px; margin-bottom: 20px; }
+        .totals { display: flex; gap: 8px; margin-bottom: 20px; }
         .total-box {
             flex: 1; border: 1px solid #e2e8f0; border-radius: 6px;
             padding: 10px 14px; background: #f8fafc;
@@ -43,6 +43,7 @@
         .stat .svalue { font-size: 16px; font-weight: 700; margin-top: 2px; }
         .stat.views .svalue { color: #7c3aed; }
         .stat.clicks .svalue { color: #059669; }
+        .stat.devices .svalue { color: #ea580c; }
 
         table { width: 100%; border-collapse: collapse; font-size: 10px; }
         table th {
@@ -64,8 +65,9 @@
     </div>
 
     @php
-        $totalViews  = $sponsors->sum('story_views');
-        $totalClicks = $sponsors->sum('link_clicks');
+        $totalViews   = $sponsors->sum('story_views');
+        $totalClicks  = $sponsors->sum('link_clicks');
+        $totalDevices = $sponsors->sum('unique_devices');
         $totalSponsors = $sponsors->count();
     @endphp
 
@@ -81,6 +83,10 @@
         <div class="total-box">
             <div class="label">Clicks en enlaces</div>
             <div class="value">{{ number_format($totalClicks) }}</div>
+        </div>
+        <div class="total-box">
+            <div class="label">Dispositivos unicos</div>
+            <div class="value">{{ number_format($totalDevices) }}</div>
         </div>
     </div>
 
@@ -103,6 +109,10 @@
                 <div class="stat clicks">
                     <div class="slabel">Clicks enlace</div>
                     <div class="svalue">{{ number_format($sponsor['link_clicks']) }}</div>
+                </div>
+                <div class="stat devices">
+                    <div class="slabel">Dispositivos unicos</div>
+                    <div class="svalue">{{ number_format($sponsor['unique_devices']) }}</div>
                 </div>
             </div>
             @if ($sponsor['stories']->count())
