@@ -77,6 +77,7 @@ class SponsorController extends Controller
             );
 
             // Upsert each story matched by (sponsor_id + media_url)
+            $incomingUrls = [];
             foreach ($sponsorData['stories'] ?? [] as $storyData) {
                 SponsorStory::updateOrCreate(
                     [
@@ -89,7 +90,13 @@ class SponsorController extends Controller
                         'expires_at' => $storyData['expires_at'] ?? null,
                     ]
                 );
+                $incomingUrls[] = $storyData['media_url'];
             }
+
+            // Deactivate stories that no longer exist in WordPress
+            $sponsor->stories()
+                ->whereNotIn('media_url', $incomingUrls)
+                ->update(['active' => false]);
         }
 
         // Return the full updated list (same format as /list)
