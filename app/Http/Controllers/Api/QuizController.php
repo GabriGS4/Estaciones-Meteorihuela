@@ -31,7 +31,15 @@ class QuizController extends Controller
             'tiempo' => 'required|integer|min:0',
         ]);
 
-        $ranking = QuizRanking::create($validated);
+        $ranking = QuizRanking::updateOrCreate(
+            ['nombre_jugador' => $validated['nombre_jugador']],
+            [
+                'puntos' => $validated['puntos'],
+                'total_preguntas' => $validated['total_preguntas'],
+                'porcentaje' => $validated['porcentaje'],
+                'tiempo' => $validated['tiempo'],
+            ]
+        );
 
         return response()->json([
             'message' => 'Ranking guardado correctamente.',
