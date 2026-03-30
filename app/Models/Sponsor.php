@@ -9,7 +9,7 @@ class Sponsor extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'logo_url', 'link_url', 'active'];
+    protected $fillable = ['name', 'logo_url', 'link_url', 'active', 'order'];
 
     public function stories()
     {

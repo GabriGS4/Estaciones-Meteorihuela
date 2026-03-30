@@ -24,6 +24,8 @@ class SponsorController extends Controller
                          ->orWhere('expires_at', '>', now());
                   });
             }])
+            ->orderBy('order')
+            ->orderBy('id')
             ->get();
 
         return response()->json(['success' => true, 'data' => $sponsors]);
@@ -65,8 +67,11 @@ class SponsorController extends Controller
             'sponsors.*.stories.*.expires_at' => 'nullable|date',
         ]);
 
-        foreach ($request->sponsors as $sponsorData) {
-            // Upsert sponsor matched by name
+        // Primera pasada: upsert sponsors + stories, detectar si hay stories nuevas.
+        // $processed[i] = ['sponsor' => Sponsor, 'hasNewStory' => bool, 'wpIndex' => int]
+        $processed = [];
+
+        foreach ($request->sponsors as $index => $sponsorData) {
             $sponsor = Sponsor::updateOrCreate(
                 ['name' => $sponsorData['name']],
                 [
@@ -76,10 +81,11 @@ class SponsorController extends Controller
                 ]
             );
 
-            // Upsert each story matched by (sponsor_id + media_url)
+            $hasNewStory = false;
             $incomingUrls = [];
+
             foreach ($sponsorData['stories'] ?? [] as $storyData) {
-                SponsorStory::updateOrCreate(
+                $story = SponsorStory::updateOrCreate(
                     [
                         'sponsor_id' => $sponsor->id,
                         'media_url'  => $storyData['media_url'],
@@ -90,13 +96,51 @@ class SponsorController extends Controller
                         'expires_at' => $storyData['expires_at'] ?? null,
                     ]
                 );
+
+                if ($story->wasRecentlyCreated) {
+                    $hasNewStory = true;
+                }
+
                 $incomingUrls[] = $storyData['media_url'];
             }
 
-            // Deactivate stories that no longer exist in WordPress
+            // Reactivar stories que vuelven a aparecer en WordPress
+            if (!empty($incomingUrls)) {
+                $sponsor->stories()
+                    ->whereIn('media_url', $incomingUrls)
+                    ->update(['active' => true]);
+            }
+
+            // Desactivar stories que ya no están en WordPress
             $sponsor->stories()
                 ->whereNotIn('media_url', $incomingUrls)
                 ->update(['active' => false]);
+
+            $processed[] = [
+                'sponsor'     => $sponsor,
+                'hasNewStory' => $hasNewStory,
+                'wpIndex'     => $index,
+            ];
+        }
+
+        // Segunda pasada: calcular el nuevo `order`.
+        // Patrocinadores con story nueva primero (orden relativo de WP entre ellos),
+        // luego el resto (orden relativo de WP entre ellos).
+        $withNew = collect($processed)
+            ->filter(fn($p) => $p['hasNewStory'])
+            ->sortBy('wpIndex')
+            ->values();
+
+        $withoutNew = collect($processed)
+            ->filter(fn($p) => !$p['hasNewStory'])
+            ->sortBy('wpIndex')
+            ->values();
+
+        $ordered = $withNew->concat($withoutNew);
+
+        foreach ($ordered as $newOrder => $entry) {
+            $entry['sponsor']->order = $newOrder;
+            $entry['sponsor']->save();
         }
 
         // Return the full updated list (same format as /list)
@@ -108,6 +152,8 @@ class SponsorController extends Controller
                          ->orWhere('expires_at', '>', now());
                   });
             }])
+            ->orderBy('order')
+            ->orderBy('id')
             ->get();
 
         return response()->json(['success' => true, 'synced' => count($request->sponsors), 'data' => $sponsors]);
