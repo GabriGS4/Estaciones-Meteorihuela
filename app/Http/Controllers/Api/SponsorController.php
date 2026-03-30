@@ -124,19 +124,27 @@ class SponsorController extends Controller
         }
 
         // Segunda pasada: calcular el nuevo `order`.
-        // Patrocinadores con story nueva primero (orden relativo de WP entre ellos),
-        // luego el resto (orden relativo de WP entre ellos).
-        $withNew = collect($processed)
-            ->filter(fn($p) => $p['hasNewStory'])
-            ->sortBy('wpIndex')
-            ->values();
+        // Ordenamos por la fecha de creación de la story más reciente de cada patrocinador (desc),
+        // con el orden de WP como desempate.
+        // Así el patrocinador que subió la story más nueva va primero y se mantiene hasta que
+        // otro suba una más reciente — el orden es persistente entre syncs.
+        $sponsorIds = array_map(fn($p) => $p['sponsor']->id, $processed);
 
-        $withoutNew = collect($processed)
-            ->filter(fn($p) => !$p['hasNewStory'])
-            ->sortBy('wpIndex')
-            ->values();
+        $maxDates = SponsorStory::whereIn('sponsor_id', $sponsorIds)
+            ->where('active', true)
+            ->groupBy('sponsor_id')
+            ->selectRaw('sponsor_id, MAX(created_at) as max_created_at')
+            ->pluck('max_created_at', 'sponsor_id');
 
-        $ordered = $withNew->concat($withoutNew);
+        $ordered = collect($processed)
+            ->map(fn($p) => array_merge($p, [
+                'maxStoryAt' => $maxDates[$p['sponsor']->id] ?? '',
+            ]))
+            ->sortBy([
+                ['maxStoryAt', 'desc'],
+                ['wpIndex',    'asc'],
+            ])
+            ->values();
 
         foreach ($ordered as $newOrder => $entry) {
             $entry['sponsor']->order = $newOrder;
