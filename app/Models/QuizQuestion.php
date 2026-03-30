@@ -13,5 +13,10 @@ class QuizQuestion extends Model
         'opcion_c',
         'opcion_d',
         'respuesta_correcta',
+        'es_patrocinador',
+    ];
+
+    protected $casts = [
+        'es_patrocinador' => 'boolean',
     ];
 }

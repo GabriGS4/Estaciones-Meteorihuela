@@ -14,7 +14,19 @@ class QuizController extends Controller
      */
     public function getQuestions()
     {
-        $questions = QuizQuestion::inRandomOrder()->take(20)->get();
+        $sponsorQuestions = QuizQuestion::where('es_patrocinador', true)->get();
+
+        $sponsorIds = $sponsorQuestions->pluck('id');
+        $remaining = max(0, 20 - $sponsorQuestions->count());
+
+        $regularQuestions = QuizQuestion::where('es_patrocinador', false)
+            ->whereNotIn('id', $sponsorIds)
+            ->inRandomOrder()
+            ->take($remaining)
+            ->get();
+
+        $questions = $sponsorQuestions->concat($regularQuestions)->shuffle()->values();
+
         return response()->json($questions);
     }
 
