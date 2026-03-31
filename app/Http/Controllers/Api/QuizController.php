@@ -14,22 +14,22 @@ class QuizController extends Controller
      */
     public function getQuestions()
     {
-        $sponsorQuestions = QuizQuestion::where('es_patrocinador', true)->get();
+        $allQuestions = QuizQuestion::all();
 
-        $sponsorIds = $sponsorQuestions->pluck('id');
-        $remaining = max(0, 20 - $sponsorQuestions->count());
+        $sponsor = $allQuestions->where('es_patrocinador', true);
 
-        $regularQuestions = QuizQuestion::where('es_patrocinador', false)
-            ->whereNotIn('id', $sponsorIds)
-            ->inRandomOrder()
-            ->take($remaining)
-            ->get();
+        $regular = $allQuestions
+            ->where('es_patrocinador', false)
+            ->shuffle()
+            ->take(20 - $sponsor->count());
 
-        $questions = $sponsorQuestions->concat($regularQuestions)->shuffle()->values();
+        $questions = $sponsor
+            ->concat($regular)
+            ->shuffle()
+            ->values();
 
         return response()->json($questions);
     }
-
     /**
      * Guardar el resultado de la partida
      */
