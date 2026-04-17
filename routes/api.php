@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\BeachesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CarWashController;
@@ -12,6 +13,9 @@ Route::get('/quiz/ranking', [QuizController::class, 'getRanking']);
 
 // Car Wash widget
 Route::get('/car-wash/sponsor', [CarWashController::class, 'sponsor']);
+
+// Beach Sponsor Widget
+Route::get('/beach/sponsor', [BeachesController::class, 'sponsor']);
 
 Route::get('/app/version', function () {
     return response()->json(['version' => config('app.version')]);
