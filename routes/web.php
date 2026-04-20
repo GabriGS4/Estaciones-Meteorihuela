@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\QuizQuestionController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\ParticipantController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -44,6 +45,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/{question}',   [QuizQuestionController::class, 'destroy'])->name('destroy');
             Route::get('/importar',        [QuizQuestionController::class, 'importForm'])->name('import');
             Route::post('/importar',       [QuizQuestionController::class, 'import'])->name('import.post');
+        });
+
+        // Participants
+        Route::prefix('participantes')->name('participants.')->group(function () {
+            Route::get('/',              [ParticipantController::class, 'index'])->name('index');
+            Route::get('/datos',         [ParticipantController::class, 'data'])->name('data');
+            Route::get('/{participant}/editar', [ParticipantController::class, 'edit'])->name('edit');
+            Route::put('/{participant}', [ParticipantController::class, 'update'])->name('update');
+            Route::delete('/borrar-todos', [ParticipantController::class, 'destroyAll'])->name('destroy-all');
+            Route::delete('/bulk',       [ParticipantController::class, 'bulkDestroy'])->name('bulk-destroy');
+            Route::delete('/{participant}', [ParticipantController::class, 'destroy'])->name('destroy');
         });
 
         // Settings
