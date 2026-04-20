@@ -45,6 +45,15 @@
                 </div>
 
                 <div class="pt-4">
+                    <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Sistema</p>
+                    <a href="{{ route('admin.users.index') }}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        Usuarios
+                    </a>
+                </div>
+
+                <div class="pt-4">
                     <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Configuración</p>
                     <a href="{{ route('admin.settings.car-wash') }}"
                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('admin.settings.car-wash*') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800' }}">

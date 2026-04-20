@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\QuizQuestionController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ParticipantController;
+use App\Http\Controllers\Admin\UserController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -56,6 +57,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/borrar-todos', [ParticipantController::class, 'destroyAll'])->name('destroy-all');
             Route::delete('/bulk',       [ParticipantController::class, 'bulkDestroy'])->name('bulk-destroy');
             Route::delete('/{participant}', [ParticipantController::class, 'destroy'])->name('destroy');
+        });
+
+        // Users
+        Route::prefix('usuarios')->name('users.')->group(function () {
+            Route::get('/',             [UserController::class, 'index'])->name('index');
+            Route::get('/datos',        [UserController::class, 'data'])->name('data');
+            Route::get('/nuevo',        [UserController::class, 'create'])->name('create');
+            Route::post('/',            [UserController::class, 'store'])->name('store');
+            Route::get('/{user}/editar', [UserController::class, 'edit'])->name('edit');
+            Route::put('/{user}',       [UserController::class, 'update'])->name('update');
+            Route::delete('/{user}',    [UserController::class, 'destroy'])->name('destroy');
         });
 
         // Settings
