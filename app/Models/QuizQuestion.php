@@ -14,6 +14,7 @@ class QuizQuestion extends Model
         'opcion_d',
         'respuesta_correcta',
         'es_patrocinador',
+        'imagen',
     ];
 
     protected $casts = [
