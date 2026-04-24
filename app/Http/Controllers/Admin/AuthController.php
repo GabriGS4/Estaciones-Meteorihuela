@@ -11,7 +11,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('admin.dashboard');
+            return $this->redirectByRole(Auth::user());
         }
         return view('admin.auth.login');
     }
@@ -25,7 +25,17 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended(route('admin.dashboard'));
+
+            $user = Auth::user();
+
+            if (!$user->is_admin && !$user->sponsor_id) {
+                Auth::logout();
+                return back()
+                    ->withErrors(['email' => 'No tienes acceso al panel.'])
+                    ->onlyInput('email');
+            }
+
+            return $this->redirectByRole($user);
         }
 
         return back()->withErrors(['email' => 'Credenciales incorrectas.'])->onlyInput('email');
@@ -37,5 +47,13 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('admin.login');
+    }
+
+    private function redirectByRole($user)
+    {
+        if ($user->is_admin) {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+        return redirect()->route('admin.mi-colaborador.show');
     }
 }

@@ -11,6 +11,9 @@ use App\Http\Controllers\Admin\QuizQuestionController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ParticipantController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SponsorController;
+use App\Http\Controllers\Admin\SponsorStoryController;
+use App\Http\Controllers\Admin\MiColaboradorController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -31,8 +34,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::post('logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-    // Protected routes
-    Route::middleware('auth')->group(function () {
+    // Admin-only routes
+    Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         // Questions
@@ -77,10 +80,38 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/playas',      [SettingsController::class, 'beaches'])->name('beaches');
             Route::put('/playas',      [SettingsController::class, 'updateBeaches'])->name('beaches.update');
         });
+
+        // Colaboradores (sponsors) CRUD
+        Route::prefix('colaboradores')->name('sponsors.')->group(function () {
+            Route::get('/',              [SponsorController::class, 'index'])->name('index');
+            Route::get('/nuevo',         [SponsorController::class, 'create'])->name('create');
+            Route::post('/',             [SponsorController::class, 'store'])->name('store');
+            Route::get('/{sponsor}/editar', [SponsorController::class, 'edit'])->name('edit');
+            Route::put('/{sponsor}',     [SponsorController::class, 'update'])->name('update');
+            Route::delete('/{sponsor}',  [SponsorController::class, 'destroy'])->name('destroy');
+
+            // Stories de un colaborador
+            Route::post('/{sponsor}/stories',       [SponsorStoryController::class, 'store'])->name('stories.store');
+        });
+
+        // Stories actions (admin)
+        Route::prefix('stories')->name('stories.')->group(function () {
+            Route::delete('/{story}', [SponsorStoryController::class, 'destroy'])->name('destroy');
+            Route::patch('/{story}/toggle', [SponsorStoryController::class, 'toggle'])->name('toggle');
+        });
+    });
+
+    // Sponsor-user-only routes
+    Route::middleware(['auth', 'sponsor.user'])->prefix('mi-colaborador')->name('mi-colaborador.')->group(function () {
+        Route::get('/',              [MiColaboradorController::class, 'show'])->name('show');
+        Route::put('/',              [MiColaboradorController::class, 'update'])->name('update');
+        Route::get('/password',      [MiColaboradorController::class, 'password'])->name('password');
+        Route::put('/password',      [MiColaboradorController::class, 'updatePassword'])->name('password.update');
+        Route::post('/stories',      [MiColaboradorController::class, 'storeStory'])->name('stories.store');
+        Route::delete('/stories/{story}', [MiColaboradorController::class, 'destroyStory'])->name('stories.destroy');
+        Route::patch('/stories/{story}/toggle', [MiColaboradorController::class, 'toggleStory'])->name('stories.toggle');
     });
 });
-
-// Página embebible del mapa
 
 // Patrocinadores - Rutas de análisis públicas
 Route::prefix('patrocinadores')->group(function () {
