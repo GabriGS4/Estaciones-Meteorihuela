@@ -79,6 +79,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/lavadero',    [SettingsController::class, 'updateCarWash'])->name('car-wash.update');
             Route::get('/playas',      [SettingsController::class, 'beaches'])->name('beaches');
             Route::put('/playas',      [SettingsController::class, 'updateBeaches'])->name('beaches.update');
+            Route::get('/quiz',        [SettingsController::class, 'quiz'])->name('quiz');
+            Route::put('/quiz',        [SettingsController::class, 'updateQuiz'])->name('quiz.update');
         });
 
         // Colaboradores (sponsors) CRUD

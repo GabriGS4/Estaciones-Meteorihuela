@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CarWashController;
 use App\Http\Controllers\Api\QuizController;
 use App\Http\Controllers\Api\SponsorController;
+use App\Http\Controllers\Api\QuizSponsorController;
 
 Route::get('/quiz/questions', [QuizController::class, 'getQuestions']);
 Route::post('/quiz/ranking', [QuizController::class, 'saveRanking']);
@@ -16,6 +17,9 @@ Route::get('/car-wash/sponsor', [CarWashController::class, 'sponsor']);
 
 // Beach Sponsor Widget
 Route::get('/beach/sponsor', [BeachesController::class, 'sponsor']);
+
+// Quiz Sponsor Widget
+Route::get('/quiz/sponsor', [QuizSponsorController::class, 'sponsor']);
 
 Route::get('/app/version', function () {
     return response()->json(['version' => config('app.version')]);

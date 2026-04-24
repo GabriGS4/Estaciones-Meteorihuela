@@ -14,6 +14,12 @@ class SettingsController extends Controller
         'CAR_WASH_OVERRIDE_COLOR',
     ];
 
+    private array $quizKeys = [
+        'QUIZ_SPONSOR_NAME',
+        'QUIZ_SPONSOR_LOGO_URL',
+        'QUIZ_SPONSOR_LINK_URL',
+    ];
+
     private array $beachKeys = [
         'BEACH_SPONSOR_NAME',
         'BEACH_SPONSOR_LOGO_URL',
@@ -38,6 +44,25 @@ class SettingsController extends Controller
         $this->updateEnvKeys($this->carWashKeys, $request);
 
         return back()->with('success', 'Configuración del lavadero actualizada.');
+    }
+
+    public function quiz()
+    {
+        $values = collect($this->quizKeys)->mapWithKeys(fn($k) => [$k => env($k, '')]);
+        return view('admin.settings.quiz', compact('values'));
+    }
+
+    public function updateQuiz(Request $request)
+    {
+        $request->validate([
+            'QUIZ_SPONSOR_NAME'     => 'nullable|string|max:255',
+            'QUIZ_SPONSOR_LOGO_URL' => 'nullable|url|max:500',
+            'QUIZ_SPONSOR_LINK_URL' => 'nullable|url|max:500',
+        ]);
+
+        $this->updateEnvKeys($this->quizKeys, $request);
+
+        return back()->with('success', 'Configuración del quiz actualizada.');
     }
 
     public function beaches()
