@@ -144,18 +144,44 @@
 <script>
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
+    function setStoryBtnState(btn, active) {
+        btn.dataset.active = active ? '1' : '0';
+        btn.textContent    = active ? 'Activa' : 'Inactiva';
+        btn.className      = active
+            ? 'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors bg-green-100 text-green-700 hover:bg-green-200'
+            : 'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors bg-gray-100 text-gray-500 hover:bg-gray-200';
+    }
+
     function toggleStory(id, btn) {
+        if (btn.disabled) return;
+
+        const wasActive = btn.dataset.active === '1';
+
+        // Deshabilitar y actualizar UI de forma optimista
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        setStoryBtnState(btn, !wasActive);
+
         fetch(`/admin/stories/${id}/toggle`, {
             method: 'PATCH',
             headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
-        }).then(r => r.json()).then(data => {
+        })
+        .then(r => r.json())
+        .then(data => {
             if (data.success) {
-                btn.dataset.active = data.active ? '1' : '0';
-                btn.textContent = data.active ? 'Activa' : 'Inactiva';
-                btn.className = data.active
-                    ? 'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors bg-green-100 text-green-700 hover:bg-green-200'
-                    : 'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors bg-gray-100 text-gray-500 hover:bg-gray-200';
+                setStoryBtnState(btn, data.active);
+            } else {
+                // Revertir si el servidor rechaza
+                setStoryBtnState(btn, wasActive);
             }
+        })
+        .catch(() => {
+            // Revertir en caso de error de red
+            setStoryBtnState(btn, wasActive);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.style.opacity = '';
         });
     }
 
