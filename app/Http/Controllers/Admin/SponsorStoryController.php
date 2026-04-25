@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Sponsor;
 use App\Models\SponsorStory;
+use App\Services\SponsorOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,6 +29,8 @@ class SponsorStoryController extends Controller
             'media_type' => $mediaType,
             'active'     => true,
         ]);
+
+        SponsorOrderService::recalculate();
 
         return back()->with('success', 'Contenido subido correctamente.');
     }
