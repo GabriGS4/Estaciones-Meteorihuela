@@ -17,13 +17,6 @@ class SponsorController extends Controller
      */
     public function list(Request $request)
     {
-        // Auto-reparar: reactivar stories subidas desde el panel (media_path NOT NULL)
-        // que pudieran haber sido desactivadas por el bug del sync con WordPress.
-        // Este bloque es un no-op una vez que el bug está corregido.
-        SponsorStory::whereNotNull('media_path')
-            ->where('active', false)
-            ->update(['active' => true]);
-
         $sponsors = Sponsor::where('active', true)
             ->with(['stories' => function ($q) {
                 $q->where('active', true)
