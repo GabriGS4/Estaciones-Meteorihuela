@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Sponsor;
 use App\Models\SponsorInteraction;
-use App\Models\SponsorStory;
-use App\Services\SponsorOrderService;
 use Illuminate\Http\Request;
 
 class SponsorController extends Controller
@@ -30,120 +28,6 @@ class SponsorController extends Controller
             ->get();
 
         return response()->json(['success' => true, 'data' => $sponsors]);
-    }
-
-    /**
-     * POST /api/sponsors/sync
-     * Receives an array of sponsors (with nested stories).
-     * Creates them if they don't exist, or updates them if they do (matched by name).
-     * Returns the full updated list from the database.
-     *
-     * Body example:
-     * {
-     *   "sponsors": [
-     *     {
-     *       "name": "Sponsor X",
-     *       "logo_url": "https://…/logo.png",
-     *       "link_url": "https://sponsor-x.com",
-     *       "active": true,
-     *       "stories": [
-     *         { "media_url": "https://…/img.jpg", "media_type": "image", "active": true, "expires_at": null }
-     *       ]
-     *     }
-     *   ]
-     * }
-     */
-    public function sync(Request $request)
-    {
-        $request->validate([
-            'sponsors'                       => 'required|array',
-            'sponsors.*.name'                => 'required|string|max:255',
-            'sponsors.*.logo_url'            => 'nullable|string',
-            'sponsors.*.link_url'            => 'nullable|string',
-            'sponsors.*.active'              => 'boolean',
-            'sponsors.*.stories'             => 'nullable|array',
-            'sponsors.*.stories.*.media_url' => 'required_with:sponsors.*.stories|string',
-            'sponsors.*.stories.*.media_type' => 'nullable|in:image,video',
-            'sponsors.*.stories.*.active'    => 'nullable|boolean',
-            'sponsors.*.stories.*.expires_at' => 'nullable|date',
-        ]);
-
-        // Primera pasada: upsert sponsors + stories, detectar si hay stories nuevas.
-        // $processed[i] = ['sponsor' => Sponsor, 'hasNewStory' => bool, 'wpIndex' => int]
-        $processed = [];
-
-        foreach ($request->sponsors as $index => $sponsorData) {
-            $sponsor = Sponsor::updateOrCreate(
-                ['name' => $sponsorData['name']],
-                [
-                    'logo_url' => $sponsorData['logo_url'] ?? null,
-                    'link_url' => $sponsorData['link_url'] ?? null,
-                    'active'   => $sponsorData['active'] ?? true,
-                ]
-            );
-
-            $hasNewStory = false;
-            $incomingUrls = [];
-
-            foreach ($sponsorData['stories'] ?? [] as $storyData) {
-                $story = SponsorStory::updateOrCreate(
-                    [
-                        'sponsor_id' => $sponsor->id,
-                        'media_url'  => $storyData['media_url'],
-                    ],
-                    [
-                        'media_type' => $storyData['media_type'] ?? 'image',
-                        'active'     => $storyData['active'] ?? true,
-                        'expires_at' => $storyData['expires_at'] ?? null,
-                    ]
-                );
-
-                if ($story->wasRecentlyCreated) {
-                    $hasNewStory = true;
-                }
-
-                $incomingUrls[] = $storyData['media_url'];
-            }
-
-            // Reactivar stories que vuelven a aparecer en WordPress
-            if (!empty($incomingUrls)) {
-                $sponsor->stories()
-                    ->whereIn('media_url', $incomingUrls)
-                    ->update(['active' => true]);
-            }
-
-            // Desactivar stories que ya no están en WordPress.
-            // Solo afecta a stories de WP (media_path IS NULL).
-            // Las stories subidas desde el panel de administración (media_path NOT NULL) nunca se desactivan por sync.
-            $sponsor->stories()
-                ->whereNotIn('media_url', $incomingUrls)
-                ->whereNull('media_path')
-                ->update(['active' => false]);
-
-            $processed[] = [
-                'sponsor'     => $sponsor,
-                'hasNewStory' => $hasNewStory,
-                'wpIndex'     => $index,
-            ];
-        }
-
-        // Segunda pasada: recalcular el `order` global de todos los sponsors.
-        SponsorOrderService::recalculate();
-
-        // Return the full updated list (same format as /list)
-        $sponsors = Sponsor::where('active', true)
-            ->with(['stories' => function ($q) {
-                $q->where('active', true)
-                  ->where(function ($q2) {
-                      $q2->whereNull('expires_at')
-                         ->orWhere('expires_at', '>', now());
-                  });
-            }])
-            ->orderBy('order')
-            ->orderBy('id')
-            ->get();
-
-        return response()->json(['success' => true, 'synced' => count($request->sponsors), 'data' => $sponsors]);
     }
 
     /**

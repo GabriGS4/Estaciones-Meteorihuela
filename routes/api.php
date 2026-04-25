@@ -27,7 +27,6 @@ Route::get('/app/version', function () {
 
 // Sponsor routes — POST only (consumed by the mobile app)
 Route::prefix('sponsors')->group(function () {
-    Route::post('/sync',             [SponsorController::class, 'sync']);        // upsert sponsors+stories
     Route::post('/list',             [SponsorController::class, 'list']);
     Route::post('/track-story-view', [SponsorController::class, 'trackStoryView']);
     Route::post('/track-link-click', [SponsorController::class, 'trackLinkClick']);
