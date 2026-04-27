@@ -12,11 +12,18 @@
         @foreach(['a', 'b', 'c', 'd'] as $opt)
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
-                Opción {{ strtoupper($opt) }} <span class="text-red-500">*</span>
+                Opción {{ strtoupper($opt) }}
+                @if(in_array($opt, ['a', 'b']))
+                    <span class="text-red-500">*</span>
+                @else
+                    <span class="text-gray-400 font-normal">(opcional)</span>
+                @endif
             </label>
-            <input type="text" name="opcion_{{ $opt }}" required
+            <input type="text" name="opcion_{{ $opt }}" id="opcion_{{ $opt }}"
+                   {{ in_array($opt, ['a', 'b']) ? 'required' : '' }}
                    value="{{ old('opcion_'.$opt, $question?->{'opcion_'.$opt}) }}"
-                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('opcion_'.$opt) border-red-400 @enderror">
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('opcion_'.$opt) border-red-400 @enderror"
+                   placeholder="{{ in_array($opt, ['c', 'd']) ? 'Dejar vacío si no aplica' : '' }}">
             @error('opcion_'.$opt) <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
         </div>
         @endforeach
@@ -24,10 +31,13 @@
 
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Respuesta correcta <span class="text-red-500">*</span></label>
-        <select name="respuesta_correcta" required
+        <select name="respuesta_correcta" id="respuesta_correcta" required
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('respuesta_correcta') border-red-400 @enderror">
             @foreach(['a', 'b', 'c', 'd'] as $opt)
-            <option value="{{ $opt }}" {{ old('respuesta_correcta', $question?->respuesta_correcta) === $opt ? 'selected' : '' }}>
+            <option value="{{ $opt }}"
+                    data-option="{{ $opt }}"
+                    {{ old('respuesta_correcta', $question?->respuesta_correcta) === $opt ? 'selected' : '' }}
+                    {{ in_array($opt, ['c', 'd']) && empty(old('opcion_'.$opt, $question?->{'opcion_'.$opt})) ? 'hidden disabled' : '' }}>
                 Opción {{ strtoupper($opt) }}
             </option>
             @endforeach
@@ -81,11 +91,33 @@
 </div>
 
 <script>
-document.getElementById('imagen-input')?.addEventListener('change', function () {
-    const preview = document.getElementById('imagen-preview');
-    if (this.files && this.files[0]) {
-        preview.src = URL.createObjectURL(this.files[0]);
-        preview.classList.remove('hidden');
+(function () {
+    const inputs = { c: document.getElementById('opcion_c'), d: document.getElementById('opcion_d') };
+    const select = document.getElementById('respuesta_correcta');
+
+    function updateSelect() {
+        Array.from(select.options).forEach(opt => {
+            const key = opt.dataset.option;
+            if (key === 'c' || key === 'd') {
+                const filled = inputs[key] && inputs[key].value.trim() !== '';
+                opt.hidden = !filled;
+                opt.disabled = !filled;
+                if (!filled && opt.selected) {
+                    select.value = 'a';
+                }
+            }
+        });
     }
-});
+
+    inputs.c?.addEventListener('input', updateSelect);
+    inputs.d?.addEventListener('input', updateSelect);
+
+    document.getElementById('imagen-input')?.addEventListener('change', function () {
+        const preview = document.getElementById('imagen-preview');
+        if (this.files && this.files[0]) {
+            preview.src = URL.createObjectURL(this.files[0]);
+            preview.classList.remove('hidden');
+        }
+    });
+})();
 </script>

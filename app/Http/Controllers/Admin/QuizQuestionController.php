@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\QuizQuestion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class QuizQuestionController extends Controller
 {
@@ -31,18 +32,25 @@ class QuizQuestionController extends Controller
 
     public function store(Request $request)
     {
+        $validOptions = array_values(array_filter(
+            ['a', 'b', 'c', 'd'],
+            fn($opt) => $request->filled("opcion_$opt")
+        ));
+
         $validated = $request->validate([
             'pregunta'           => 'required|string|max:1000',
             'opcion_a'           => 'required|string|max:500',
             'opcion_b'           => 'required|string|max:500',
-            'opcion_c'           => 'required|string|max:500',
-            'opcion_d'           => 'required|string|max:500',
-            'respuesta_correcta' => 'required|in:a,b,c,d',
+            'opcion_c'           => 'nullable|string|max:500',
+            'opcion_d'           => 'nullable|string|max:500',
+            'respuesta_correcta' => ['required', Rule::in($validOptions)],
             'es_patrocinador'    => 'boolean',
             'imagen'             => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $validated['es_patrocinador'] = $request->boolean('es_patrocinador');
+        $validated['opcion_c'] = $request->filled('opcion_c') ? $request->input('opcion_c') : null;
+        $validated['opcion_d'] = $request->filled('opcion_d') ? $request->input('opcion_d') : null;
 
         if ($request->hasFile('imagen')) {
             $validated['imagen'] = $request->file('imagen')->store('quiz/imagenes', 'public');
@@ -60,18 +68,25 @@ class QuizQuestionController extends Controller
 
     public function update(Request $request, QuizQuestion $question)
     {
+        $validOptions = array_values(array_filter(
+            ['a', 'b', 'c', 'd'],
+            fn($opt) => $request->filled("opcion_$opt")
+        ));
+
         $validated = $request->validate([
             'pregunta'           => 'required|string|max:1000',
             'opcion_a'           => 'required|string|max:500',
             'opcion_b'           => 'required|string|max:500',
-            'opcion_c'           => 'required|string|max:500',
-            'opcion_d'           => 'required|string|max:500',
-            'respuesta_correcta' => 'required|in:a,b,c,d',
+            'opcion_c'           => 'nullable|string|max:500',
+            'opcion_d'           => 'nullable|string|max:500',
+            'respuesta_correcta' => ['required', Rule::in($validOptions)],
             'es_patrocinador'    => 'boolean',
             'imagen'             => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $validated['es_patrocinador'] = $request->boolean('es_patrocinador');
+        $validated['opcion_c'] = $request->filled('opcion_c') ? $request->input('opcion_c') : null;
+        $validated['opcion_d'] = $request->filled('opcion_d') ? $request->input('opcion_d') : null;
 
         if ($request->hasFile('imagen')) {
             if ($question->imagen) {
@@ -133,7 +148,7 @@ class QuizQuestionController extends Controller
         $skipped  = 0;
 
         foreach ($data as $item) {
-            $required = ['pregunta', 'opcion_a', 'opcion_b', 'opcion_c', 'opcion_d', 'respuesta_correcta'];
+            $required = ['pregunta', 'opcion_a', 'opcion_b', 'respuesta_correcta'];
             $missing  = array_diff($required, array_keys($item));
 
             if (!empty($missing)) {
@@ -141,7 +156,10 @@ class QuizQuestionController extends Controller
                 continue;
             }
 
-            if (!in_array(strtolower($item['respuesta_correcta']), ['a', 'b', 'c', 'd'])) {
+            $correcta = strtolower($item['respuesta_correcta']);
+            $validOpts = array_filter(['a', 'b', 'c', 'd'], fn($o) => !empty($item["opcion_$o"]));
+
+            if (!in_array($correcta, $validOpts)) {
                 $skipped++;
                 continue;
             }
@@ -150,9 +168,9 @@ class QuizQuestionController extends Controller
                 'pregunta'           => $item['pregunta'],
                 'opcion_a'           => $item['opcion_a'],
                 'opcion_b'           => $item['opcion_b'],
-                'opcion_c'           => $item['opcion_c'],
-                'opcion_d'           => $item['opcion_d'],
-                'respuesta_correcta' => strtolower($item['respuesta_correcta']),
+                'opcion_c'           => $item['opcion_c'] ?? null,
+                'opcion_d'           => $item['opcion_d'] ?? null,
+                'respuesta_correcta' => $correcta,
                 'es_patrocinador'    => (bool) ($item['es_patrocinador'] ?? false),
             ]);
 
