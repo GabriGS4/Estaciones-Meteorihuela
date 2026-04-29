@@ -32,7 +32,7 @@
                     @enderror
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Puntos</label>
                         <input type="number" name="puntos" min="0"
@@ -54,7 +54,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Porcentaje (%)</label>
                         <input type="number" name="porcentaje" min="0" max="100" step="0.01"

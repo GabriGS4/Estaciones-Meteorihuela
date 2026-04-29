@@ -10,25 +10,32 @@
 
         header {
             background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-            padding: 2rem 2.5rem;
+            padding: 1.25rem 1.5rem;
             border-bottom: 1px solid #334155;
             display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 1rem;
         }
-        header h1 { font-size: 1.6rem; font-weight: 700; color: #f8fafc; }
+        header h1 { font-size: 1.3rem; font-weight: 700; color: #f8fafc; }
         header p { font-size: 0.85rem; color: #94a3b8; margin-top: 0.25rem; }
         .btn-pdf {
             display: inline-flex; align-items: center; gap: 0.5rem;
             padding: 0.6rem 1.4rem; border-radius: 8px;
             background: #3b82f6; color: #fff; text-decoration: none;
             font-size: 0.875rem; font-weight: 600;
-            transition: background 0.2s;
+            transition: background 0.2s; white-space: nowrap;
         }
         .btn-pdf:hover { background: #2563eb; }
 
-        .container { max-width: 1100px; margin: 2.5rem auto; padding: 0 1.5rem; }
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
 
         /* Summary totals */
-        .totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2.5rem; }
+        .totals { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        @media (min-width: 640px) {
+            .totals { grid-template-columns: repeat(4, 1fr); }
+            header { padding: 2rem 2.5rem; }
+            header h1 { font-size: 1.6rem; }
+            .container { padding: 0 1.5rem; }
+        }
         .total-card {
             background: #1e293b; border: 1px solid #334155; border-radius: 12px;
             padding: 1.4rem 1.6rem;
@@ -63,8 +70,9 @@
         .badge-active.yes { background: #14532d; color: #4ade80; }
         .badge-active.no  { background: #450a0a; color: #f87171; }
 
-        .card-body { padding: 1.2rem 1.5rem; }
-        .stats-row { display: flex; gap: 1.5rem; margin-bottom: 1.2rem; }
+        .card-body { padding: 1rem 1rem; overflow-x: auto; }
+        @media (min-width: 640px) { .card-body { padding: 1.2rem 1.5rem; } }
+        .stats-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.2rem; }
         .stat-box {
             flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px;
             padding: 1rem 1.2rem;

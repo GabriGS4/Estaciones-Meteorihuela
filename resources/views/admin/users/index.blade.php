@@ -3,7 +3,7 @@
 @section('title', 'Usuarios')
 
 @section('content')
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
     <div>
         <h2 class="text-2xl font-bold text-gray-900">Usuarios</h2>
         <p class="text-gray-500 text-sm mt-1">Administradores del panel</p>
@@ -15,7 +15,7 @@
 </div>
 
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <div class="p-6">
+    <div class="p-4 md:p-6 overflow-x-auto">
         <table id="users-table" class="w-full text-sm">
             <thead>
                 <tr class="text-left text-gray-500 font-medium">

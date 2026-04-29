@@ -3,12 +3,12 @@
 @section('title', 'Preguntas')
 
 @section('content')
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
     <div>
         <h2 class="text-2xl font-bold text-gray-900">Preguntas del Quiz</h2>
         <p class="text-gray-500 text-sm mt-1">Gestiona todas las preguntas</p>
     </div>
-    <div class="flex gap-3">
+    <div class="flex flex-wrap gap-3">
         <a href="{{ route('admin.questions.import') }}"
            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             Importar JSON
@@ -21,7 +21,7 @@
 </div>
 
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <div class="p-6">
+    <div class="p-4 md:p-6 overflow-x-auto">
         <table id="questions-table" class="w-full text-sm">
             <thead>
                 <tr class="text-left text-gray-500 font-medium">

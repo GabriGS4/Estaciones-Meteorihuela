@@ -3,7 +3,7 @@
 @section('title', 'Mi colaborador')
 
 @section('content')
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
     <div>
         <h2 class="text-2xl font-bold text-gray-900">Mi colaborador</h2>
         <p class="text-sm text-gray-500 mt-1">Gestiona tu información y contenido</p>

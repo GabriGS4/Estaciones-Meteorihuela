@@ -3,7 +3,7 @@
 @section('title', 'Colaboradores')
 
 @section('content')
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
     <div>
         <h2 class="text-2xl font-bold text-gray-900">Colaboradores</h2>
         <p class="text-sm text-gray-500 mt-1">Gestiona los patrocinadores y su contenido</p>
@@ -14,8 +14,8 @@
     </a>
 </div>
 
-<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <table id="sponsorsTable" class="w-full text-sm">
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden overflow-x-auto">
+    <table id="sponsorsTable" class="w-full text-sm min-w-[600px]">
         <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
                 <th class="px-4 py-3 text-left font-semibold text-gray-600">Logo</th>

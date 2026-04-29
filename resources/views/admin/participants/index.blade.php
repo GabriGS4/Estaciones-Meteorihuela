@@ -3,12 +3,12 @@
 @section('title', 'Participantes')
 
 @section('content')
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
     <div>
         <h2 class="text-2xl font-bold text-gray-900">Participantes</h2>
         <p class="text-gray-500 text-sm mt-1">Listado de participantes del quiz</p>
     </div>
-    <div class="flex gap-3">
+    <div class="flex flex-wrap gap-3">
         <button id="btn-bulk-delete"
                 class="hidden px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
             Eliminar seleccionados (<span id="selected-count">0</span>)
@@ -21,7 +21,7 @@
 </div>
 
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <div class="p-6">
+    <div class="p-4 md:p-6 overflow-x-auto">
         <table id="participants-table" class="w-full text-sm">
             <thead>
                 <tr class="text-left text-gray-500 font-medium">
