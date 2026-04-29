@@ -11,7 +11,7 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
             <div class="text-center mb-8">
                 <div class="text-4xl mb-3">⛅</div>
-                <h1 class="text-2xl font-bold text-gray-900">Estaciones Meteo</h1>
+                <h1 class="text-2xl font-bold text-gray-900">App MeteOrihuela</h1>
                 <p class="text-sm text-gray-500 mt-1">Panel de administración</p>
             </div>
 

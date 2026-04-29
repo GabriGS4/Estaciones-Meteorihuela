@@ -61,7 +61,7 @@
 <body>
     <div class="header">
         <h1>Informe de Patrocinadores</h1>
-        <p>Estaciones Meteorihuela &bull; Generado el {{ now()->format('d/m/Y H:i') }}</p>
+        <p>App MeteOrihuela &bull; Generado el {{ now()->format('d/m/Y H:i') }}</p>
     </div>
 
     @php
@@ -144,6 +144,6 @@
         <p style="text-align:center;color:#94a3b8;padding:40px 0;">No hay patrocinadores registrados.</p>
     @endforelse
 
-    <footer>Estaciones Meteorihuela &copy; {{ date('Y') }} &bull; Sistema de patrocinadores</footer>
+    <footer>App MeteOrihuela &copy; {{ date('Y') }} &bull; Sistema de patrocinadores</footer>
 </body>
 </html>

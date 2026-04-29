@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Informe de Patrocinadores – Estaciones Meteorihuela</title>
+    <title>Informe de Patrocinadores – App MeteOrihuela</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
@@ -101,7 +101,7 @@
     <header>
         <div>
             <h1>📊 Informe de Patrocinadores</h1>
-            <p>Estaciones Meteorihuela · Generado el {{ now()->format('d/m/Y H:i') }}</p>
+            <p>App MeteOrihuela · Generado el {{ now()->format('d/m/Y H:i') }}</p>
         </div>
         <a class="btn-pdf" href="{{ route('sponsors.pdf') }}">⬇ Descargar PDF</a>
     </header>
@@ -203,6 +203,6 @@
         </div>
     </div>
 
-    <footer>Estaciones Meteorihuela &copy; {{ date('Y') }} · Sistema de patrocinadores</footer>
+    <footer>App MeteOrihuela &copy; {{ date('Y') }} · Sistema de patrocinadores</footer>
 </body>
 </html>

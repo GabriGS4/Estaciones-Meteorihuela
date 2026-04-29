@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Panel Admin') — Estaciones Meteo</title>
+    <title>@yield('title', 'Panel Admin') — App MeteOrihuela</title>
 
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.tailwindcss.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +19,7 @@
         <!-- Sidebar -->
         <aside class="w-64 bg-gray-900 text-white flex flex-col shrink-0">
             <div class="px-6 py-5 border-b border-gray-700">
-                <h1 class="text-lg font-bold tracking-tight">⛅ Estaciones Meteo</h1>
+                <h1 class="text-lg font-bold tracking-tight">⛅ App MeteOrihuela</h1>
                 <p class="text-xs text-gray-400 mt-1">
                     @if(auth()->user()->is_admin)
                         Panel de administración

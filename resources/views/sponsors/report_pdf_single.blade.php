@@ -57,7 +57,7 @@
 
     <div class="header">
         <h1>Informe de Patrocinador</h1>
-        <div class="sub">Estaciones Meteorihuela &bull; Generado el {{ now()->format('d/m/Y H:i') }}</div>
+        <div class="sub">App MeteOrihuela &bull; Generado el {{ now()->format('d/m/Y H:i') }}</div>
         <div class="sponsor-title">{{ $sponsor['name'] }}</div>
     </div>
 
@@ -123,6 +123,6 @@
         <div class="no-stories">Sin stories registradas.</div>
     @endif
 
-    <footer>Estaciones Meteorihuela &copy; {{ date('Y') }} &bull; Sistema de patrocinadores</footer>
+    <footer>App MeteOrihuela &copy; {{ date('Y') }} &bull; Sistema de patrocinadores</footer>
 </body>
 </html>
