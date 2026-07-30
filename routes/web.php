@@ -100,6 +100,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('stories')->name('stories.')->group(function () {
             Route::delete('/{story}', [SponsorStoryController::class, 'destroy'])->name('destroy');
             Route::patch('/{story}/toggle', [SponsorStoryController::class, 'toggle'])->name('toggle');
+            Route::patch('/{story}/extra-views', [SponsorStoryController::class, 'updateExtraViews'])->name('update-extra-views');
         });
     });
 

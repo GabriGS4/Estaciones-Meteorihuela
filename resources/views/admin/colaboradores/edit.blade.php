@@ -53,7 +53,41 @@
                 @enderror
             </div>
 
-            <div class="flex items-center gap-3">
+            <hr class="border-gray-200">
+
+            <div>
+                <h4 class="text-sm font-semibold text-gray-900 mb-3">Modificar Estadísticas (Offset del Admin)</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Vistas stories extra</label>
+                        <input type="number" name="extra_story_views" value="{{ old('extra_story_views', $sponsor->extra_story_views) }}" min="0"
+                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('extra_story_views') border-red-400 @enderror">
+                        @error('extra_story_views')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Clicks enlace extra</label>
+                        <input type="number" name="extra_link_clicks" value="{{ old('extra_link_clicks', $sponsor->extra_link_clicks) }}" min="0"
+                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('extra_link_clicks') border-red-400 @enderror">
+                        @error('extra_link_clicks')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Dispositivos únicos extra</label>
+                        <input type="number" name="extra_unique_devices" value="{{ old('extra_unique_devices', $sponsor->extra_unique_devices) }}" min="0"
+                               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('extra_unique_devices') border-red-400 @enderror">
+                        @error('extra_unique_devices')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
                 <input type="hidden" name="active" value="0">
                 <input type="checkbox" name="active" id="active" value="1" {{ $sponsor->active ? 'checked' : '' }}
                        class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
@@ -118,6 +152,15 @@
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-medium text-gray-700 uppercase tracking-wide">{{ $story->media_type }}</p>
                             <p class="text-xs text-gray-400 mt-0.5">{{ $story->created_at->format('d/m/Y H:i') }}</p>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs">
+                            <span class="text-gray-400">Vistas:</span>
+                            <span class="font-medium text-gray-700">{{ $story->real_views_count }}</span>
+                            <span class="text-gray-400">+</span>
+                            <input type="number" value="{{ $story->extra_views }}" min="0"
+                                   onchange="updateStoryViews({{ $story->id }}, this)"
+                                   placeholder="0"
+                                   class="w-14 rounded-lg border border-gray-300 px-2 py-1 text-xs text-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                         </div>
                         <div class="flex items-center gap-2">
                             <button onclick="toggleStory({{ $story->id }}, this)"
@@ -192,6 +235,33 @@
             headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
         }).then(r => r.json()).then(data => {
             if (data.success) location.reload();
+        });
+    }
+
+    function updateStoryViews(id, input) {
+        const val = parseInt(input.value) || 0;
+        input.style.borderColor = '';
+
+        fetch(`/admin/stories/${id}/extra-views`, {
+            method: 'PATCH',
+            headers: { 
+                'X-CSRF-TOKEN': csrf, 
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ extra_views: val })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                input.style.borderColor = '#10b981';
+                setTimeout(() => { input.style.borderColor = ''; }, 1500);
+            } else {
+                input.style.borderColor = '#ef4444';
+            }
+        })
+        .catch(() => {
+            input.style.borderColor = '#ef4444';
         });
     }
 </script>

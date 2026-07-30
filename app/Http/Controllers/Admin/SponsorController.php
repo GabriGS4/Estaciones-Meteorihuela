@@ -23,17 +23,23 @@ class SponsorController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255|unique:sponsors,name',
-            'link_url' => 'nullable|url|max:500',
-            'active'   => 'boolean',
-            'logo'     => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+            'name'                 => 'required|string|max:255|unique:sponsors,name',
+            'link_url'             => 'nullable|url|max:500',
+            'active'               => 'boolean',
+            'logo'                 => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+            'extra_story_views'    => 'nullable|integer|min:0',
+            'extra_link_clicks'    => 'nullable|integer|min:0',
+            'extra_unique_devices' => 'nullable|integer|min:0',
         ]);
 
         $data = [
-            'name'     => $validated['name'],
-            'link_url' => $validated['link_url'] ?? null,
-            'active'   => $request->boolean('active', true),
-            'order'    => Sponsor::max('order') + 1,
+            'name'                 => $validated['name'],
+            'link_url'             => $validated['link_url'] ?? null,
+            'active'               => $request->boolean('active', true),
+            'order'                => Sponsor::max('order') + 1,
+            'extra_story_views'    => (int) ($request->input('extra_story_views') ?? 0),
+            'extra_link_clicks'    => (int) ($request->input('extra_link_clicks') ?? 0),
+            'extra_unique_devices' => (int) ($request->input('extra_unique_devices') ?? 0),
         ];
 
         if ($request->hasFile('logo')) {
@@ -49,23 +55,34 @@ class SponsorController extends Controller
 
     public function edit(Sponsor $sponsor)
     {
-        $stories = $sponsor->stories()->orderBy('created_at', 'desc')->get();
+        $stories = $sponsor->stories()
+            ->withCount(['interactions as real_views_count' => function ($query) {
+                $query->where('interaction_type', 'story_view');
+            }])
+            ->orderBy('created_at', 'desc')
+            ->get();
         return view('admin.colaboradores.edit', compact('sponsor', 'stories'));
     }
 
     public function update(Request $request, Sponsor $sponsor)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255|unique:sponsors,name,' . $sponsor->id,
-            'link_url' => 'nullable|url|max:500',
-            'active'   => 'boolean',
-            'logo'     => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+            'name'                 => 'required|string|max:255|unique:sponsors,name,' . $sponsor->id,
+            'link_url'             => 'nullable|url|max:500',
+            'active'               => 'boolean',
+            'logo'                 => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+            'extra_story_views'    => 'nullable|integer|min:0',
+            'extra_link_clicks'    => 'nullable|integer|min:0',
+            'extra_unique_devices' => 'nullable|integer|min:0',
         ]);
 
         $data = [
-            'name'     => $validated['name'],
-            'link_url' => $validated['link_url'] ?? null,
-            'active'   => $request->boolean('active', true),
+            'name'                 => $validated['name'],
+            'link_url'             => $validated['link_url'] ?? null,
+            'active'               => $request->boolean('active', true),
+            'extra_story_views'    => (int) ($request->input('extra_story_views') ?? 0),
+            'extra_link_clicks'    => (int) ($request->input('extra_link_clicks') ?? 0),
+            'extra_unique_devices' => (int) ($request->input('extra_unique_devices') ?? 0),
         ];
 
         if ($request->hasFile('logo')) {

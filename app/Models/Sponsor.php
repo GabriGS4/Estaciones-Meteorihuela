@@ -10,7 +10,10 @@ class Sponsor extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'logo_url', 'logo_path', 'link_url', 'active', 'order'];
+    protected $fillable = [
+        'name', 'logo_url', 'logo_path', 'link_url', 'active', 'order',
+        'extra_story_views', 'extra_link_clicks', 'extra_unique_devices'
+    ];
 
     public function getLogoUrlAttribute($value): ?string
     {

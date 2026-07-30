@@ -10,7 +10,7 @@ class SponsorStory extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['sponsor_id', 'media_url', 'media_path', 'media_type', 'active', 'expires_at'];
+    protected $fillable = ['sponsor_id', 'media_url', 'media_path', 'media_type', 'active', 'expires_at', 'extra_views'];
 
     protected $casts = [
         'expires_at' => 'datetime',

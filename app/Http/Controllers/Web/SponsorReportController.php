@@ -61,17 +61,17 @@ class SponsorReportController extends Controller
     {
         $storyViews = $sponsor->interactions
             ->where('interaction_type', 'story_view')
-            ->count();
+            ->count() + ($sponsor->extra_story_views ?? 0);
 
         $linkClicks = $sponsor->interactions
             ->where('interaction_type', 'link_click')
-            ->count();
+            ->count() + ($sponsor->extra_link_clicks ?? 0);
 
         $uniqueDevices = $sponsor->interactions
             ->whereNotNull('dispositivo_id')
             ->pluck('dispositivo_id')
             ->unique()
-            ->count();
+            ->count() + ($sponsor->extra_unique_devices ?? 0);
 
         $storiesWithViews = $sponsor->stories->map(function ($story) use ($sponsor) {
             return [
@@ -81,7 +81,7 @@ class SponsorReportController extends Controller
                 'views'  => $sponsor->interactions
                     ->where('interaction_type', 'story_view')
                     ->where('sponsor_story_id', $story->id)
-                    ->count(),
+                    ->count() + ($story->extra_views ?? 0),
             ];
         });
 

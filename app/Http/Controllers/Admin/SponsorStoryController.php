@@ -51,4 +51,17 @@ class SponsorStoryController extends Controller
         $story->update(['active' => !$story->active]);
         return response()->json(['success' => true, 'active' => $story->active]);
     }
+
+    public function updateExtraViews(Request $request, SponsorStory $story)
+    {
+        $validated = $request->validate([
+            'extra_views' => 'required|integer|min:0',
+        ]);
+
+        $story->update([
+            'extra_views' => $validated['extra_views'],
+        ]);
+
+        return response()->json(['success' => true, 'extra_views' => $story->extra_views]);
+    }
 }
